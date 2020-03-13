@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetTaskInterface\NetTaskInterface.csproj" />
+    <ProjectReference Include="..\TestLibrary\TestLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
