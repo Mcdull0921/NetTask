@@ -65,6 +65,12 @@ namespace NetTaskServer.DB
             liteCollection.Update(new KV(key.ToString(), value));
         }
 
+        public void Update(string key, string value)
+        {
+            keyCache.TryRemove(key, out _);
+            liteCollection.Update(new KV(key.ToString(), value));
+        }
+
         public void UpdateByName(string userName, string newUserName, string value)
         {
             //存在修改索引的操作，所以删除后增加
