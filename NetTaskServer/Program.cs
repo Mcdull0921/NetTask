@@ -1,4 +1,5 @@
 ﻿using NetTaskInterface;
+using NetTaskManager;
 using NetTaskServer.DB;
 using NetTaskServer.HttpServer;
 using System;
@@ -19,7 +20,7 @@ namespace NetTaskServer
 
             CancellationTokenSource ctsHttp = new CancellationTokenSource();
             IDbOperator DbOp = new LiteDbOperator(DB_PATH);//加载数据库
-            HttpServerAPIs api = new HttpServerAPIs(null, DbOp, LOG_PATH);
+            HttpServerAPIs api = new HttpServerAPIs(TaskManager.Create(), DbOp, LOG_PATH);
             HttpServer.HttpServer httpServer = new HttpServer.HttpServer(NLog.LogManager.GetCurrentClassLogger(), api);
             var t = httpServer.StartHttpService(ctsHttp, 8888);
 

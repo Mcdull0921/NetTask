@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace NetTaskManager
 {
-    static class EnumExtention
+    public static class EnumExtention
     {
         public static string GetDescription(this Enum value)
         {

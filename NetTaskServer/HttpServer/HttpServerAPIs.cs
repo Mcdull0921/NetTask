@@ -4,6 +4,7 @@ using NetTaskServer.DB;
 using NetTaskServer.DB.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace NetTaskServer.HttpServer
@@ -26,6 +27,9 @@ namespace NetTaskServer.HttpServer
             {
                 AddUserV2("admin", "admin", "2");
             }
+
+            serverContext.ReloadAssembly();
+            serverContext.StartAllTask();
         }
 
         #region 登录
@@ -136,6 +140,61 @@ window.location.href='main.html';
             User user = Dbop.Get(userName)?.ToObject<User>();
             user.userPwd = EncryptHelper.SHA256(userPwd);
             Dbop.Update(userName, user.ToJsonString());
+        }
+        #endregion
+
+        #region 任务
+        [API]
+        [Secure]
+        public IEnumerable<string> GetTasks()
+        {
+            return ServerContext.Tasks.Select(p => new
+            {
+                id = p.Id.ToString(),
+                name = p.Name,
+                typeName = p.TypeName,
+                status = p.Status.GetDescription(),
+                nextProcessTime = p.NextProcessTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "无",
+                timerType = p.TaskTimerType.GetDescription(),
+                interval = p.Interval,
+                runOnStart = p.RunOnStart ? "是" : "否",
+                startTime = p.StartTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "无"
+            }.ToJsonString());
+        }
+
+        [API]
+        [Secure]
+        public void StartAllTasks()
+        {
+            ServerContext.StartAllTask();
+        }
+
+        [API]
+        [Secure]
+        public void StopAllTasks()
+        {
+            ServerContext.StopAllTask();
+        }
+
+        [API]
+        [Secure]
+        public void StartTask(string id)
+        {
+            ServerContext.StartTask(Guid.Parse(id));
+        }
+
+        [API]
+        [Secure]
+        public void StopTask(string id)
+        {
+            ServerContext.StopTask(Guid.Parse(id));
+        }
+
+        [API]
+        [Secure]
+        public void RunTask(string id)
+        {
+            ServerContext.RunImmediatelyTask(Guid.Parse(id));
         }
         #endregion
     }

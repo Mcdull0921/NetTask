@@ -13,13 +13,14 @@
 
 
 function addUser() {
-    $("#divAddUser").collapse('toggle');
     if($("#divAddUser").is(':visible')){
-        $("#inputPassword").val("");
-        $("#inputUserName").val("");
-        $('input[type="radio"]')[0].checked=true;
-        reloadValidator();
-    }  
+        return;
+    }
+    $("#inputPassword").val("");
+    $("#inputUserName").val("");
+    $('input[type="radio"]')[0].checked=true;
+    reloadValidator();
+    $("#divAddUser").collapse('show');
 }
 
 
@@ -40,7 +41,6 @@ function addUser_submit() {
                     alert("保存失败：" + res.Msg);
                     return;
                 }
-                alert('保存成功');
                 $("#divAddUser").collapse('hide');
                 selectUsers();
                 $("#inputPassword").val("");
@@ -62,7 +62,6 @@ function delOneUser(userIndex, userName) {
             alert("操作失败：" + res.Msg);
             return;
         }
-        alert('删除成功');
         selectUsers();
     });
 }

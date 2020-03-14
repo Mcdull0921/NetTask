@@ -1,14 +1,66 @@
 ﻿<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h3">任务管理</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-toolbar mb-2 mb-md-0" style="display: flow-root;">
+            <div class="pretty p-switch p-fill">
+                    <input type="checkbox" id="cbAutoRefresh" />
+                    <div class="state"><label>自动刷新</label>
+                    </div>
+                </div>
         <div class="btn-group mr-2">
-            <button type="button" id="btnExpandAll" class="btn btn-sm btn-outline-secondary">
-                <span data-feather="activity"></span>
-                展开所有
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="Task.getTasks();">
+                        <span data-feather="refresh-cw"></span> 刷新
+                    </button>
+            <button type="button" id="btnExpandAll" class="btn btn-sm btn-outline-secondary" onclick="Task.startAll();">
+                <span data-feather="play-circle"></span>
+                全部开始
+            </button>
+            <button type="button" id="btnExpandAll" class="btn btn-sm btn-outline-secondary" onclick="Task.stopAll();">
+                <span data-feather="stop-circle"></span>
+                全部停止
             </button>
         </div>
     </div>
 </div>
+
+
+<div class="mb-2 collapse" id="editRunParam">
+        <form class="bv-form">
+                    <div class="form-group">
+                            <label for="sel1">循环方式</label>
+                            <select class="form-control" id="sel1">
+                              <option>1</option>
+                              <option>2</option>
+                              <option>3</option>
+                              <option>4</option>
+                            </select>
+                          </div>
+            <div class="form-group">
+                <label for="inputPassword">间隔</label>
+                <input type="password" data-bv-field="inputPassword" name="inputPassword" class="form-control" id="inputPassword" placeholder="请输入登录密码">
+            </div>
+
+            <div class="form-group">
+                    <label for="inputPassword">开始时间</label>
+                    <input type="password" data-bv-field="inputPassword" name="inputPassword" class="form-control" id="inputPassword" placeholder="请输入登录密码">
+                </div>
+    
+            <div class="form-group">
+                    <div class="pretty p-switch p-fill">
+                            <input type="checkbox" />
+                            <div class="state p-primary"><label>启动时立即执行</label>
+                            </div>
+                        </div>
+        </div>
+    
+            <button type="button" id="btnAddUser" class="btn btn-primary mr-2">保存</button>
+            <button type="button"  class="btn btn-outline-secondary" onclick='$("#editRunParam").collapse("hide");'>取消</button>
+        </form>
+    </div>
+
+    <div class="mb-2 collapse" id="editConfig">
+         
+        asdfsadfsaf
+        </div>
 
 <div class="table-responsive-md">
 
@@ -16,48 +68,20 @@
         <thead>
             <tr>
 
-                <th>Port(Protocol,Host)</th>
-                <th>User ID</th>
-                <th>AppId</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Connections</th>
-
+                <th style="width:50px;">Id</th>
+                <th>任务名</th>
+                <th>类名</th>
+                <th>状态</th>
+                <th>下次运行时间</th>
+                <th>循环方式</th>
+                <th>间隔时间</th>
+                <th>启动时立即执行</th>
+                <th>开始时间</th>
+                <th>操作</th>
             </tr>
         </thead>
-        <tbody id="connections_tb_body">
-            <tr>
-               
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-            </tr>
-            <tr>
-                <td colspan="6">
-                    <div>连接</div>
-                    <div>连接</div>
-                    <div>连接</div>
-                </td>
-            </tr>
-            <tr>
-
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-                <td>无效内容</td>
-            </tr>
-            <tr>
-                <td colspan="6">
-                    <div>连接</div>
-                    <div>连接</div>
-                    <div>连接</div>
-                </td>
-            </tr>
+        <tbody id="tb_body">
+        
         </tbody>
     </table>
 </div>

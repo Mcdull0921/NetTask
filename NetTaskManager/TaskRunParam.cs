@@ -4,7 +4,7 @@ using System.Text;
 
 namespace NetTaskManager
 {
-    public class TaskRunParam
+    class TaskRunParam
     {
         public string taskTypeName { get; set; }
         public int interval { get; set; }

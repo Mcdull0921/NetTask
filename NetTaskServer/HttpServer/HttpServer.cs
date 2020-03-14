@@ -252,7 +252,7 @@ namespace NetTaskServer.HttpServer
                     {
                         if ((ex is TargetInvocationException) && ex.InnerException != null) ex = ex.InnerException;
                         Logger.Error(ex, ex.Message);
-                        jsonObj = new Exception(ex.Message + "---" + ex.StackTrace);
+                        jsonObj = new Exception(ex.Message);// + "---" + ex.StackTrace
                         response.ContentType = "application/json";
                         await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
                     }

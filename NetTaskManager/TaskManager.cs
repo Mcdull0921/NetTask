@@ -291,62 +291,69 @@ namespace NetTaskManager
         {
             if (!IsRunning)
                 return;
-            if (tasks.ContainsKey(id) && tasks[id].Status == TaskStatus.Stop)
-            {
-                tasks[id].Start(this);
-            }
+            if (!tasks.ContainsKey(id))
+                throw new TaskNotExistException();
+            if (tasks[id].Status != TaskStatus.Stop)
+                throw new TaskNotStopException();
+            tasks[id].Start(this);
         }
 
         public void StopTask(Guid id)
         {
-            if (tasks.ContainsKey(id))
-            {
-                tasks[id].Stop();
-                ClearQueue();
-            }
+            if (!tasks.ContainsKey(id))
+                throw new TaskNotExistException();
+            tasks[id].Stop();
+            ClearQueue();
         }
 
         public void RunImmediatelyTask(Guid id)
         {
             if (!IsRunning)
                 return;
-            if (tasks.ContainsKey(id) && tasks[id].Status == TaskStatus.Stop)
-            {
-                tasks[id].RunImmediately(this);
-            }
+            if (!tasks.ContainsKey(id))
+                throw new TaskNotExistException();
+            if (tasks[id].Status != TaskStatus.Stop)
+                throw new TaskNotStopException();
+            tasks[id].RunImmediately(this);
         }
 
         public void EditTaskConfig(Guid id, params KeyValuePair<string, string>[] configs)
         {
-            if (tasks.ContainsKey(id) && tasks[id].Status == TaskStatus.Stop)
+            if (!tasks.ContainsKey(id))
+                throw new TaskNotExistException();
+            if (tasks[id].Status != TaskStatus.Stop)
+                throw new TaskNotStopException();
+            var t = tasks[id];
+            XmlDocument doc = new XmlDocument();
+            var root = doc.CreateElement("task");
+            root.SetAttribute("entrypoint", t.configuration.EntryPoint);
+            foreach (var c in configs)
             {
-                var t = tasks[id];
-                XmlDocument doc = new XmlDocument();
-                var root = doc.CreateElement("task");
-                root.SetAttribute("entrypoint", t.configuration.EntryPoint);
-                foreach (var c in configs)
-                {
-                    XmlElement node = doc.CreateElement("add");
-                    node.SetAttribute("key", c.Key);
-                    node.SetAttribute("value", c.Value);
-                    root.AppendChild(node);
-                }
-                doc.AppendChild(root);
-                var path = t.configuration.Path;
-                doc.Save(path);
-                t.configuration = new Configuration(path);
+                XmlElement node = doc.CreateElement("add");
+                node.SetAttribute("key", c.Key);
+                node.SetAttribute("value", c.Value);
+                root.AppendChild(node);
             }
+            doc.AppendChild(root);
+            var path = t.configuration.Path;
+            doc.Save(path);
+            t.configuration = new Configuration(path);
         }
 
-        public void EditTaskRunParam(Guid id, TaskRunParam config)
+        public void EditTaskRunParam(Guid id, TimerType timerType, int interval, DateTime? startTime, bool runOnStart)
         {
-            if (tasks.ContainsKey(id) && tasks[id].Status == TaskStatus.Stop)
-            {
-                var t = tasks[id];
-                var configs = LoadTaskRunParam(t.AssemblyId);
-                configs[t.TypeName] = config;
-                SaveTaskRunParam(t.AssemblyId, configs.Values);
-            }
+            if (!tasks.ContainsKey(id))
+                throw new TaskNotExistException();
+            if (tasks[id].Status != TaskStatus.Stop)
+                throw new TaskNotStopException();
+            var t = tasks[id];
+            var configs = LoadTaskRunParam(t.AssemblyId);
+            var config = configs[t.TypeName];
+            config.interval = interval;
+            config.timerType = timerType;
+            config.startTime = startTime;
+            config.runOnStart = runOnStart;
+            SaveTaskRunParam(t.AssemblyId, configs.Values);
         }
 
         public IEnumerable<TaskAgent> Tasks

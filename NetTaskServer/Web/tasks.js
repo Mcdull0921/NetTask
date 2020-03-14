@@ -1,106 +1,106 @@
-﻿//@ sourceURL= config.js
-//function getClientsInfo() {
-//    $.get(basepath + "GetClientsInfoJson", function (res) {
-//        var data = res.Data;
-//        var clientsInfo = $.parseJSON(data);
-
-//        updatedClientsInfo(clientsInfo);
-//    });
-//}
-//折叠表
-(function ($) {
-    //$(function () {
-    //    initDataTable();
-    //});
-    function initDataTable() {
-        $('.table-expandable').each(function () {
-            var table = $(this);
-            table.children('thead').children('tr').append('<th style="width:30px;"></th>');
-            table.children('tbody').children('tr').filter(':odd').hide();
-            table.children('tbody').children('tr').filter(':even').click(function () {
-                var element = $(this);
-                element.next('tr').toggle();
-                element.find(".span-left").toggle();
-                element.find(".span-down").toggle();
-            });
-            table.children('tbody').children('tr').filter(':even').each(function () {
-                var element = $(this);
-                element.append('<td><span class="span-left" data-feather="chevron-left"></span><span class="span-down" data-feather="chevron-down" display="none"></span></td>');
-            });
-            if (feather)
-                feather.replace();
-
-        });
-    }
-
-    var flag = true;
-    function expandAll() {
-
-        $('.table-expandable').each(function () {
-            var table = $(this);
-            //table.children('thead').children('tr').append('<th></th>');
-            table.children('tbody').children('tr').filter(':odd').hide();
-            table.children('tbody').children('tr').filter(':even').each(function () {
-                var element = $(this);
-                if (flag == true) {
-                    element.next('tr').show();
-                    element.find(".span-left").hide();
-                    element.find(".span-down").show();
-                } else {
-                    element.next('tr').hide();
-                    element.find(".span-left").show();
-                    element.find(".span-down").hide();
-                }
-            });
-        });
-        flag = !flag;
-    }
-
-    function getClientsInfo() {
-        $.get(basepath + "GetClientsInfoJson", function (res) {
+﻿var Task=new (function (){
+    this.getTasks=function() {
+        $.get(basepath + "GetTasks", function (res) {
             var data = res.Data;
-            var clientsInfo = $.parseJSON(data);
-            var htmlBroken = "<span data-feather='cloud-lightning' color='red'></span> ";
-            var htmlGood = "<span data-feather='sun' color='orange'></span> ";
-            var html = "";
-            for (i in clientsInfo) {
-                var co = clientsInfo[i];
-                var statusHtml = "";
-                statusHtml = (co.blocksCount == "1") ? htmlGood : htmlBroken;
-                html += " <tr>" +
-                    " <td>" + co.port + "(" + co.protocol + "," + co.host + ")</td >" +
-                    "<td>" + co.clientId + "</td>" +
-                    "<td>" + co.appId + "</td>" +
-                    "<td>" + co.description + "</td>" +
-                    "<td>" + statusHtml + "</td>" +
-                    "<td>连接数：" + co.revconns.length + "，隧道数：" + co.tunnels.length + "</td>" +
-                    "</tr>" +
-                    "<tr>" +
-                    "<td colspan='6'>";
-                for (j in co.tunnels) {
-                    var tunnel = co.tunnels[j];
-                    if (tunnel.consumerClient == undefined) tunnel.consumerClient = "已断开";
-                    if (tunnel.clientServerClient == undefined) tunnel.clientServerClient = "已断开";
-                    html += "外网:" + tunnel.consumerClient + "&nbsp;";
-                    html += "内网:" + tunnel.clientServerClient;
-                    html += "<br />";
-                }
-
-
-                html += "</td>" +
+            var htmlStr = "";
+            for (var i=0; i< data.length;i++) {
+                var task = $.parseJSON(data[i]);
+                htmlStr += "<tr>" +
+                    "<td><span title='"+ task.id +"'>" + task.id.substr(0,8)+'...' + "</span></td>" +
+                    "<td>" + task.name + "</td>" +
+                    "<td>" + task.typeName + "</td>" +
+                    "<td>" + task.status + "</td>" +
+                    "<td>" + task.nextProcessTime + "</td>" +
+                    "<td>" + task.timerType + "</td>" +
+                    "<td>" + task.interval + "</td>" +
+                    "<td>" + task.runOnStart + "</td>" +
+                    "<td>" + task.startTime + "</td>" ;
+                htmlStr += "<td>" + dropDownButtonHtml(task.id) + "</td>" +
                     "</tr>";
-                //alert(clientObj.);
-                //  clientObj.Cli
             }
-            $("#connections_tb_body").html(html);
-            //updatedClientsInfo(clientsInfo);
-            initDataTable();
+            $("#tb_body").html(htmlStr);
+            if (feather)
+                feather.replace();    
         });
-    }
+    };
 
+    this.startAll=function(){
+        ajax(this,'StartAllTasks');
+    };
+
+    this.stopAll=function(){
+        ajax(this,'StopAllTasks');
+    };
+
+    this.startTask=function(id){
+        this.ajax(this,'StartTask',id);
+    };
+
+    this.stopTask=function(id){
+        ajax(this,'StopTask',id);
+    };
+
+    this.runTask=function(id){
+        ajax(this,'RunTask',id);
+    };
+
+    var ajax=function(self,method,id){
+        var url=method;
+        if(id)url+="?id="+id;
+        $.get(basepath + url, function (res) {
+            if (res.State == 0) {
+                alert(res.Msg);
+                return;
+            }
+            self.getTasks();
+        });
+    };
+
+    this.editRunParam=function(){
+         $("#editConfig").collapse('hide');
+        if(!$("#editRunParam").is(':visible')){
+            $("#editRunParam").collapse('show');
+        }
+        
+    };
+
+    this.editConfig=function(){
+         $("#editRunParam").collapse('hide');
+        if(!$("#editConfig").is(':visible')){
+            $("#editConfig").collapse('show');
+        }
+    };
+
+
+   var dropDownButtonHtml= function (id) {
+        var html = "<div class=\"btn-group\" '>" +
+            "<button class=\"btn btn-outline-secondary btn-sm dropdown-toggle\" type=\"button\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"false\">" +
+            "操作</button>\r\n      <div class=\"dropdown-menu dropdown-menu-right\" x-placement=\"bottom-start\" style=\"position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, 31px, 0px);\">";
+            
+        html += "<a class=\"dropdown-item\" href=\"javascript:Task.startTask('" + id+ "')\">开始任务</a>"+
+        "<a class=\"dropdown-item\" href=\"javascript:Task.stopTask('" + id + "')\">停止任务</a>"+
+        "<a class=\"dropdown-item\" href=\"javascript:Task.runTask('" + id + "')\">立即执行</a>"+
+        "<div class=\"dropdown-divider\"></div>" +
+            "<a class=\"dropdown-item\" href=\"javascript:Task.editRunParam('" + id + "',)\">修改运行参数</a>" +
+            "<a class=\"dropdown-item\" href=\"javascript:Task.editConfig('" + id + "')\">修改任务配置</a>" +
+            "</div></div>";
+        return html;
+    };
+})();
+(function () {
     $(document).ready(function () {
-
-        getClientsInfo();
+        $("#cbAutoRefresh").change(function(e) { 
+           if($(e.target).prop('checked')){
+                Task.autoRefresh = setInterval(Task.getTasks,1000);
+           }
+           else{
+                window.clearInterval(Task.autoRefresh);
+           }
+        }); 
+        Task.getTasks();
     });
-    $("#btnExpandAll").click(function () { expandAll(); });
-})(jQuery); 
+})();
+
+
+
+
