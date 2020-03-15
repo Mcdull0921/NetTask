@@ -230,13 +230,13 @@ namespace NetTaskManager
             }
         }
 
-        internal Configuration configuration
+        public Configuration configuration
         {
             get
             {
                 return task.configuration;
             }
-            set
+            internal set
             {
                 task.configuration = value;
             }

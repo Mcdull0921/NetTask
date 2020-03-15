@@ -29,8 +29,9 @@ var basepath = "/";//api根地址,这里需要和配置文件一致
     }
 
     function loadContent(storedHash) {
+        window.clearInterval(window.autoTaskRefresh);
         if (this.location.href.indexOf("login.html") < 0 && this.location.href.indexOf('#') < 0) {
-            this.location.href += "#users";
+            this.location.href += "#tasks";
             return;
         }
         storedHash = "#" + storedHash;

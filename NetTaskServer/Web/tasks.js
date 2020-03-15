@@ -98,10 +98,35 @@
 
     this.editConfig=function(id){
          $("#editRunParam").collapse('hide');
-        if(!$("#editConfig").is(':visible')){
-            $("#editConfig").collapse('show');
-        }
+         ajax('GetTaskConfig',{'id':id},function(data){
+            var html='';
+            if(data.length==0){
+                html='<div style="margin-bottom: 20px;font-size: 16pt;color: #7a4b10;">该任务无任何配置</div>';
+                $('#btnSaveConfig').css('display','none');
+            }
+            else{
+                for(var i=0;i<data.length;i++){
+                    html+='<div class="form-group"><label for="input_'+data[i].Key+'">'+ data[i].Key +'</label>'+
+                        '<input type="text"  name="input_'+data[i].Key+'" class="form-control"  value="'+ data[i].Value +'" ></div>';
+                }
+                $('#btnSaveConfig').css('display','');
+            }
+            $('#taskId').val(id);
+            $('#taskConfig').html(html)
+            if(!$("#editConfig").is(':visible')){
+                $("#editConfig").collapse('show');
+            }
+         });
     };
+
+    this.saveConfig=function(){
+        ajax('EditTaskConfig',{
+            'id':$('#taskId').val(),
+            'configs':JSON.stringify($.map($('#taskConfig input'),function(i){ return {'Key':i.name.substr(6),'Value': $(i).val()}; })),
+        },function(data){
+            $("#editConfig").collapse('hide');
+        });
+   };
 
 
    var dropDownButtonHtml= function (id) {
@@ -134,10 +159,10 @@
         });
         $("#cbAutoRefresh").change(function(e) { 
            if($(e.target).prop('checked')){
-                Task.autoRefresh = setInterval(Task.getTasks,1000);
+                window.autoTaskRefresh = setInterval(Task.getTasks,1000);
            }
            else{
-                window.clearInterval(Task.autoRefresh);
+                window.clearInterval(window.autoTaskRefresh);
            }
         }); 
         Task.getTasks();

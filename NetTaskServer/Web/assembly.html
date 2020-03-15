@@ -1,0 +1,32 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h3">程序集设置</h1>
+        <div class="btn-toolbar mb-2 mb-md-0" style="display: flow-root;">
+            <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="Task.getTasks();">
+                            <span data-feather="plus"></span> 上传程序集
+                        </button>
+                <button type="button" id="btnExpandAll" class="btn btn-sm btn-outline-secondary" onclick="Task.startAll();">
+                    <span data-feather="activity"></span> 重新加载程序集
+                </button>
+            </div>
+        </div>
+    </div>
+    
+   
+    
+    <div class="table-responsive-md">
+    
+        <table class="table table-striped table-expandable">
+            <thead>
+                <tr>
+    
+                    <th>程序集Id</th>
+                    <th style="width:200px;">创建时间</th>
+                    <th style="width:100px;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="tb_body">
+ 
+            </tbody>
+        </table>
+    </div>

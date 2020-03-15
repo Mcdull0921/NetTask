@@ -2,10 +2,12 @@
 using NetTaskServer.Common;
 using NetTaskServer.DB;
 using NetTaskServer.DB.Model;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace NetTaskServer.HttpServer
 {
@@ -225,6 +227,77 @@ window.location.href='main.html';
             }
             ServerContext.EditTaskRunParam(Guid.Parse(id), (TimerType)int.Parse(timerType), int.Parse(interval), time, bool.Parse(runOnStart));
         }
+
+        [API]
+        [Secure]
+        public object GetTaskConfig(string id)
+        {
+            var gid = Guid.Parse(id);
+            foreach (var t in ServerContext.Tasks)
+            {
+                if (t.Id == gid)
+                {
+                    if (t.Status == TaskStatus.Stop)
+                        return t.configuration.Values;
+                    throw new TaskNotStopException();
+                }
+            }
+            throw new TaskNotExistException();
+        }
+
+        [API]
+        [Secure]
+        public void EditTaskConfig(string id, string configs)
+        {
+            var kv = JsonConvert.DeserializeObject<KeyValuePair<string, string>[]>(configs);
+            ServerContext.EditTaskConfig(Guid.Parse(id), kv);
+        }
+        #endregion
+
+        #region 程序集
+        [API]
+        [Secure]
+        public IEnumerable<string> GetAssemblies()
+        {
+            var dirs = Directory.GetDirectories(ServerContext.AssemblyPath).Select(p => new DirectoryInfo(p));
+            var res = new List<string>();
+            Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
+            foreach (var task in ServerContext.Tasks)
+            {
+                var aid = task.AssemblyId.ToString();
+                if (!dic.ContainsKey(aid))
+                {
+                    dic.Add(aid, new List<string>());
+                }
+                dic[aid].Add(task.TypeName);
+            }
+            foreach (var dir in dirs)
+            {
+                var aid = dir.Name;
+                res.Add(new
+                {
+                    id = aid,
+                    create = dir.CreationTime,
+                    tasks = dic[aid],
+                    files = dir.GetFiles().Select(p => p.Name).ToArray()
+                }.ToJsonString());
+            }
+            return res;
+        }
+
+        [API]
+        [Secure]
+        public void DelAssembly(string id)
+        {
+            var aid = Guid.Parse(id);
+            if (ServerContext.Tasks.Count(t => t.AssemblyId == aid && t.Status != TaskStatus.Stop) > 0)
+                throw new TaskNotStopException("该程序集中有任务未停止，请先停止任务！");
+            ServerContext.DeleteAssembly(aid);
+        }
+        #endregion
+
+        #region 日志
+
         #endregion
     }
 }

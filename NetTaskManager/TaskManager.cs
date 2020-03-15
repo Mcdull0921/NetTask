@@ -129,7 +129,7 @@ namespace NetTaskManager
             return true;
         }
 
-        private string AssemblyPath
+        public string AssemblyPath
         {
             get
             {
@@ -235,6 +235,24 @@ namespace NetTaskManager
             Start();
         }
 
+        public void DeleteAssembly(Guid assemblyId)
+        {
+            if (Tasks.Count(t => t.AssemblyId == assemblyId && t.Status != TaskStatus.Stop) > 0)
+                throw new TaskNotStopException();
+            ClearQueue();
+            var deleteIds = Tasks.Where(t => t.AssemblyId == assemblyId).Select(t => t.Id).ToArray();
+            foreach (var id in deleteIds)
+            {
+                tasks.Remove(id);
+            }
+            var assemblyPath = Path.Join(AssemblyPath, assemblyId.ToString());
+            if (Directory.Exists(assemblyPath))
+                Directory.Delete(assemblyPath, true);
+            assemblyPath += ".json";
+            if (File.Exists(assemblyPath))
+                File.Delete(assemblyPath);
+        }
+
         private bool Start()
         {
             if (IsRunning)
@@ -323,6 +341,8 @@ namespace NetTaskManager
                 throw new TaskNotExistException();
             if (tasks[id].Status != TaskStatus.Stop)
                 throw new TaskNotStopException();
+            if (configs == null)
+                return;
             var t = tasks[id];
             XmlDocument doc = new XmlDocument();
             var root = doc.CreateElement("task");

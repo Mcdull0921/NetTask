@@ -6,7 +6,7 @@
                     <div class="state"><label>自动刷新</label>
                     </div>
                 </div>
-        <div class="btn-group mr-2">
+        <div class="btn-group">
                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="Task.getTasks();">
                         <span data-feather="refresh-cw"></span> 刷新
                     </button>
@@ -75,8 +75,14 @@
     </div>
 
     <div class="mb-2 collapse" id="editConfig">
-         
-        asdfsadfsaf
+            <form class="bv-form">
+                <div id="taskConfig">
+
+                </div>
+                    <button type="button" id="btnSaveConfig"  class="btn btn-primary mr-2" onclick="Task.saveConfig()">保存</button>
+                    <button type="button"  class="btn btn-outline-secondary" onclick='$("#editConfig").collapse("hide");'>取消</button>
+              
+            </form>
         </div>
 
 <div class="table-responsive-md">

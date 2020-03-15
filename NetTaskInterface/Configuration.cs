@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Xml;
 
@@ -74,6 +75,14 @@ namespace NetTaskInterface
             if (!string.IsNullOrEmpty(value) && double.TryParse(value, out result))
                 return result;
             return null;
+        }
+
+        public IEnumerable<KeyValuePair<string, string>> Values
+        {
+            get
+            {
+                return dic.Select(p => p);
+            }
         }
     }
 }

@@ -212,3 +212,25 @@ body {
 .glyphicon-time:before {
     content: "\e023";
 }
+
+table .title{
+  font-weight: bold;
+}
+
+table .label{
+  background-color: chocolate;
+    display: inline;
+    padding: .2em .6em .3em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 2;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+}
+
+table .label-task{
+   background-color: #4808f5;
+}
