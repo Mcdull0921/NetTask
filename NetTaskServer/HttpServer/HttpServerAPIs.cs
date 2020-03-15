@@ -196,6 +196,35 @@ window.location.href='main.html';
         {
             ServerContext.RunImmediatelyTask(Guid.Parse(id));
         }
+
+        [API]
+        [Secure]
+        public TaskAgent GetTask(string id)
+        {
+            var gid = Guid.Parse(id);
+            foreach (var t in ServerContext.Tasks)
+            {
+                if (t.Id == gid)
+                {
+                    if (t.Status == TaskStatus.Stop)
+                        return t;
+                    throw new TaskNotStopException();
+                }
+            }
+            throw new TaskNotExistException();
+        }
+
+        [API]
+        [Secure]
+        public void EditTaskRunParam(string id, string timerType, string interval, string startTime, string runOnStart)
+        {
+            DateTime? time = null;
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParse(startTime, out DateTime t))
+            {
+                time = t;
+            }
+            ServerContext.EditTaskRunParam(Guid.Parse(id), (TimerType)int.Parse(timerType), int.Parse(interval), time, bool.Parse(runOnStart));
+        }
         #endregion
     }
 }

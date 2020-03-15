@@ -353,6 +353,7 @@ namespace NetTaskManager
             config.timerType = timerType;
             config.startTime = startTime;
             config.runOnStart = runOnStart;
+            t.runParam = config;
             SaveTaskRunParam(t.AssemblyId, configs.Values);
         }
 

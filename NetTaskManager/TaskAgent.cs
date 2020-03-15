@@ -9,9 +9,9 @@ namespace NetTaskManager
     {
         volatile TaskStatus taskStatus;
         readonly ITask task;
-        readonly TaskRunParam taskConfig;
         readonly Guid id;
         readonly Guid assemblyId;
+        TaskRunParam taskConfig;
         readonly object lockObject = new object();
         internal TaskAgent(ITask task, Guid assemblyId, TaskRunParam taskConfig)
         {
@@ -239,6 +239,18 @@ namespace NetTaskManager
             set
             {
                 task.configuration = value;
+            }
+        }
+
+        internal TaskRunParam runParam
+        {
+            get
+            {
+                return taskConfig;
+            }
+            set
+            {
+                taskConfig = value;
             }
         }
         #endregion

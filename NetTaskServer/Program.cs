@@ -22,7 +22,7 @@ namespace NetTaskServer
             IDbOperator DbOp = new LiteDbOperator(DB_PATH);//加载数据库
             HttpServerAPIs api = new HttpServerAPIs(TaskManager.Create(), DbOp, LOG_PATH);
             HttpServer.HttpServer httpServer = new HttpServer.HttpServer(NLog.LogManager.GetCurrentClassLogger(), api);
-            var t = httpServer.StartHttpService(ctsHttp, 8888);
+            var t = httpServer.StartHttpService(ctsHttp, 12315);
 
             Console.ReadKey();
         }

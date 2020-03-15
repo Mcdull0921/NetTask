@@ -22,37 +22,54 @@
     </div>
 </div>
 
-
+<input type="hidden" id="taskId" />
 <div class="mb-2 collapse" id="editRunParam">
         <form class="bv-form">
+                <!-- <div class="form-group">
+                        <label for="taskName">任务名</label>
+                        <input type="text"  name="taskName" class="form-control" id="taskName" value="" readonly >
+                    </div>
+
                     <div class="form-group">
-                            <label for="sel1">循环方式</label>
-                            <select class="form-control" id="sel1">
-                              <option>1</option>
-                              <option>2</option>
-                              <option>3</option>
-                              <option>4</option>
+                            <label for="taskTypeName">类名</label>
+                            <input type="text"  name="taskTypeName" class="form-control" id="taskTypeName" value="" readonly >
+                    </div> -->
+
+                    <div class="form-group">
+                            <label for="timeType">循环方式</label>
+                            <select class="form-control" id="timeType">
+                              <option value="0">不循环</option>
+                              <option value="1">分钟循环</option>
+                              <option value="2">小时循环</option>
+                              <option value="3">天循环</option>
+                              <option value="4">月循环</option>
+                              <option value="5">秒循环</option>
                             </select>
                           </div>
             <div class="form-group">
-                <label for="inputPassword">间隔</label>
-                <input type="password" data-bv-field="inputPassword" name="inputPassword" class="form-control" id="inputPassword" placeholder="请输入登录密码">
+                <label for="interval">间隔</label>
+                <input type="number"  name="interval" class="form-control" id="interval" value="0" >
             </div>
 
             <div class="form-group">
-                    <label for="inputPassword">开始时间</label>
-                    <input type="password" data-bv-field="inputPassword" name="inputPassword" class="form-control" id="inputPassword" placeholder="请输入登录密码">
+                    <label for="startTime" class="control-label">开始时间</label>
+                    <div class="input-group date form_datetime" data-date-format="yyyy-mm-dd hh:ii">
+                        <input class="form-control" type="text" id="startTime"  readonly>
+                        <span class="input-group-addon" style="width: 40px;"><span class="glyphicon glyphicon-remove"></span></span>
+                        <span class="input-group-addon" style="width: 40px;"><span class="glyphicon glyphicon-time"></span></span>
+                    </div>
+                    <!-- <input type="hidden" id="startTime"  /> -->
                 </div>
-    
+
             <div class="form-group">
                     <div class="pretty p-switch p-fill">
-                            <input type="checkbox" />
-                            <div class="state p-primary"><label>启动时立即执行</label>
+                            <input type="checkbox"  id="runOnStart"/>
+                            <div class="state p-primary"><label>启动时立即执行一次</label>
                             </div>
                         </div>
         </div>
     
-            <button type="button" id="btnAddUser" class="btn btn-primary mr-2">保存</button>
+            <button type="button"  class="btn btn-primary mr-2" onclick="Task.saveRunParam()">保存</button>
             <button type="button"  class="btn btn-outline-secondary" onclick='$("#editRunParam").collapse("hide");'>取消</button>
         </form>
     </div>

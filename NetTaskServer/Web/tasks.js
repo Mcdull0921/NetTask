@@ -25,46 +25,78 @@
     };
 
     this.startAll=function(){
-        ajax(this,'StartAllTasks');
+        ajax('StartAllTasks',null,this.getTasks);
     };
 
     this.stopAll=function(){
-        ajax(this,'StopAllTasks');
+        ajax('StopAllTasks',null,this.getTasks);
     };
 
     this.startTask=function(id){
-        this.ajax(this,'StartTask',id);
+        ajax('StartTask',{'id':id},this.getTasks);
     };
 
     this.stopTask=function(id){
-        ajax(this,'StopTask',id);
+        ajax('StopTask',{'id':id},this.getTasks);
     };
 
     this.runTask=function(id){
-        ajax(this,'RunTask',id);
+        ajax('RunTask',{'id':id},this.getTasks);
     };
 
-    var ajax=function(self,method,id){
+    var ajax=function(method,datas,callback){
         var url=method;
-        if(id)url+="?id="+id;
+        if(datas){
+            var pa='';
+            for(var k in datas){
+                pa+=k+'='+datas[k]+'&'
+            }
+            url+='?'+pa.substr(0,pa.length-1);
+        }
         $.get(basepath + url, function (res) {
             if (res.State == 0) {
                 alert(res.Msg);
                 return;
             }
-            self.getTasks();
+            if(callback)
+                callback(res.Data)
         });
     };
 
-    this.editRunParam=function(){
+    this.editRunParam=function(id){
          $("#editConfig").collapse('hide');
-        if(!$("#editRunParam").is(':visible')){
-            $("#editRunParam").collapse('show');
-        }
-        
+         ajax('GetTask',{'id':id},function(data){
+            $('#taskId').val(data.Id);
+            $('#taskName').val(data.Name);
+            $('#taskTypeName').val(data.TypeName);
+            $('#timeType').val(data.TaskTimerType);
+            $('#interval').val(data.Interval);
+            if(data.StartTime){
+                $('#startTime').val(new Date(data.StartTime).format("YYYY-mm-dd HH:MM"));
+                $('.form_datetime').datetimepicker('update');
+            }            
+            $('#runOnStart').prop('checked',data.RunOnStart);
+            if(!$("#editRunParam").is(':visible')){
+                $("#editRunParam").collapse('show');
+            }
+         });        
     };
 
-    this.editConfig=function(){
+    this.saveRunParam=function(){
+        var self=this;
+        ajax('EditTaskRunParam',{
+            'id':$('#taskId').val(),
+            'timerType':$('#timeType').val(),
+            'interval':$('#interval').val(),
+            'startTime':$('#startTime').val(),
+            'runOnStart':$('#runOnStart').prop('checked')
+        },function(data){
+            $("#editRunParam").collapse('hide');
+            self.getTasks();
+        });
+    }
+
+    this.editConfig=function(id){
          $("#editRunParam").collapse('hide');
         if(!$("#editConfig").is(':visible')){
             $("#editConfig").collapse('show');
@@ -89,6 +121,17 @@
 })();
 (function () {
     $(document).ready(function () {
+        $('.form_datetime').datetimepicker({
+            language:  'zh-CN',
+            weekStart: 0,
+            todayBtn:  1,
+            autoclose: 1,
+            todayHighlight: 1,
+            startView: 2,
+            forceParse: 0,
+            showMeridian:0,
+            minuteStep:1
+        });
         $("#cbAutoRefresh").change(function(e) { 
            if($(e.target).prop('checked')){
                 Task.autoRefresh = setInterval(Task.getTasks,1000);
