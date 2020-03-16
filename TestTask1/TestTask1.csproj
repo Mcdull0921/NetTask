@@ -6,12 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NetTaskInterface\NetTaskInterface.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="TestLibrary">
-      <HintPath>bin\Debug\netcoreapp2.2\TestLibrary.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\TestLibrary\TestLibrary.csproj" />
   </ItemGroup>
 
 </Project>

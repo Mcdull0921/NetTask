@@ -6,7 +6,7 @@ namespace TestLibrary
     {
         public void Hello(string msg)
         {
-            Console.WriteLine("Hello," + msg);
+            Console.WriteLine("你好," + msg);
         }
     }
 }

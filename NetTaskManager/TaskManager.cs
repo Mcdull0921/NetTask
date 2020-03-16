@@ -19,7 +19,7 @@ namespace NetTaskManager
 
         private static TaskManager singleton = new TaskManager();
         private readonly object lockObject = new object();    //操作queue的地方都要锁住保证线程同步
-        private NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        public readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         public static TaskManager Create()
         {
             return singleton;
@@ -164,7 +164,7 @@ namespace NetTaskManager
             }
         }
 
-        private void LoadAssembly(Guid assemblyId)
+        public void LoadAssembly(Guid assemblyId)
         {
             var rootDir = Path.Join(AssemblyPath, assemblyId.ToString());
             string xmlPath = Path.Join(rootDir, "main.xml");
@@ -200,17 +200,6 @@ namespace NetTaskManager
                 SaveTaskRunParam(assemblyId, saveConfigs);
         }
 
-        public void LoadAssembly(string zipPath)
-        {
-            var assemblyId = Guid.NewGuid();
-            var rootDir = Path.Join(AssemblyPath, assemblyId.ToString());
-            if (!Directory.Exists(rootDir))
-            {
-                Directory.CreateDirectory(rootDir);
-                //todo:unzip  
-                LoadAssembly(assemblyId);
-            }
-        }
 
         public void ReloadAssembly()
         {

@@ -19,10 +19,71 @@ var Assembly=new (function (){
     };
 
     this.delAssembly=function(id){
+        var self=this;
         if(confirm("删除程序集将再也无法恢复，确认删除吗？")){
-            alert('删除成功！');
-            ajax("DelAssembly",{'id':id},this.getData);
+            ajax("DelAssembly",{'id':id},function(){
+                alert('删除成功！');
+                self.getData();
+            });
         }
+    };
+
+    this.fileSelected =function() {
+        var file = document.getElementById('fileToUpload').files[0];
+        if (file) {
+            if(file.name.substr(file.name.lastIndexOf('.')).toLowerCase()!='.zip'){
+                alert('只能上传zip后缀的文件，请将程序集打包成zip格式上传！');
+                $("#fileToUpload").val("");
+                return;
+            }
+            var fileSize = 0;
+            if (file.size > 1024 * 1024)
+                fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+            else
+                fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
+            $('#fileName').html('文件名: '+file.name);
+            $('#fileSize').html('Size: ' + fileSize);
+        }
+        uploadFile(this);
+    
+    }
+
+    var uploadFile=function (self) {
+        var fd = new FormData();
+        fd.append("fileToUpload", document.getElementById('fileToUpload').files[0]);
+        var xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", function(evt){
+            if (evt.lengthComputable) {
+                var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+                $('#progressNumber').html(percentComplete.toString() + '%');
+            }
+            else {
+                $('#progressNumber').html('unable to compute');
+            }
+        }, false);
+        xhr.addEventListener("load", function(evt){
+    /* 服务器端返回响应时候触发event事件*/
+    var result = JSON.parse(evt.target.responseText);
+            if (result.State == 1) {
+                alert('上传成功！');
+                self.getData();
+            }
+            else{
+                alert(result.Msg);
+            }
+            $("#fileToUpload").val("");
+            $('#fileName').html('');
+            $("#fileSize").html("");
+            $("#progressNumber").html("");
+        }, false);
+        xhr.addEventListener("error", function(){
+            alert("上传失败!");
+        }, false);
+        xhr.addEventListener("abort", function(){
+            alert("客户端中断了上传。");
+        }, false);
+        xhr.open("POST", basepath + "UploadAssembly");//修改成自己的接口 xhr.send(fd);
+        xhr.send(fd);
     };
 
     this.getData=function() {

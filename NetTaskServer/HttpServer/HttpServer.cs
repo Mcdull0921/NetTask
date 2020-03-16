@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using NetTaskServer.Common;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +18,7 @@ namespace NetTaskServer.HttpServer
 
         private const string INDEX_PAGE = "/main.html";
         private const string BASE_FILE_PATH = @"E:\Github\NetTask\NetTaskServer\Web"; // "./Web/";
+        private const string FILE_UPLOAD_PATH = "./temp";
         //private const string BASE_LOG_FILE_PATH = "./log";
 
         public Dictionary<string, MemoryStream> FilesCache = new Dictionary<string, MemoryStream>(20);
@@ -125,7 +127,7 @@ namespace NetTaskServer.HttpServer
 
                     //读文件优先去缓存读
 
-//调试模式禁用缓存
+                    //调试模式禁用缓存
                     //if (FilesCache.TryGetValue(unit.TrimStart('/'), out MemoryStream memoryStream))
                     //{
                     //    memoryStream.Position = 0;
@@ -134,9 +136,9 @@ namespace NetTaskServer.HttpServer
                     //else
                     //{
                     using (FileStream fs = new FileStream(BASE_FILE_PATH + unit, FileMode.Open))
-                        {
-                            await fs.CopyToAsync(response.OutputStream);
-                        }
+                    {
+                        await fs.CopyToAsync(response.OutputStream);
+                    }
                     //}
                 }
                 else  //url中没有小数点则是接口
@@ -169,8 +171,6 @@ namespace NetTaskServer.HttpServer
                             throw new Exception($"无效的方法名{unit}");
                         }
 
-                        //debug编译时不校验，方便调试
-#if !DEBUG
                         if (method.GetCustomAttribute<SecureAttribute>() != null)
                         {
                             if (request.Cookies["NSPTK"] == null)
@@ -182,7 +182,6 @@ namespace NetTaskServer.HttpServer
                                 throw new Exception("登录信息异常。");
                             }
                         }
-#endif
 
                         if (method.GetCustomAttribute<APIAttribute>() != null)
                         {
@@ -228,25 +227,25 @@ namespace NetTaskServer.HttpServer
                         //        await fileDto.FileStream.CopyToAsync(response.OutputStream);
                         //    }
                         //}
-                        //else if (method.GetCustomAttribute<FileUploadAttribute>() != null)
-                        //{
-                        //    //文件上传
-                        //    response.ContentType = "application/json";
-                        //    if (request.HttpMethod.ToUpper() == "POST")
-                        //    {
-                        //        List<object> paraList = new List<object>();
-                        //        var fileName = SaveFile(request.ContentEncoding, request.ContentType, request.InputStream);
-                        //        paraList.Add(new FileInfo($"./{fileName}"));
-                        //        if (parameters != null)
-                        //            paraList.AddRange(parameters);
-                        //        jsonObj = method.Invoke(ControllerInstance, paraList.ToArray());
-                        //        await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
-                        //    }
-                        //    else
-                        //    {
-                        //        await response.OutputStream.WriteAsync(HtmlUtil.GetContent(HttpResult<object>.NullSuccessResult.ToJsonString()));
-                        //    }
-                        //}
+                        else if (method.GetCustomAttribute<FileUploadAttribute>() != null)
+                        {
+                            //文件上传
+                            response.ContentType = "application/json";
+                            if (request.HttpMethod.ToUpper() == "POST")
+                            {
+                                List<object> paraList = new List<object>();
+                                var file = SaveFile(request.ContentEncoding, request.ContentType, request.InputStream);
+                                paraList.Add(file);
+                                if (parameters != null)
+                                    paraList.AddRange(parameters);
+                                jsonObj = method.Invoke(ControllerInstance, paraList.ToArray());
+                                await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
+                            }
+                            else
+                            {
+                                await response.OutputStream.WriteAsync(HtmlUtil.GetContent(HttpResult<object>.NullSuccessResult.ToJsonString()));
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -301,13 +300,19 @@ namespace NetTaskServer.HttpServer
             return "--" + ctype.Split(';')[1].Split('=')[1];
         }
 
-        private string SaveFile(Encoding enc, String contentType, Stream input)
+        private FileInfo SaveFile(Encoding enc, String contentType, Stream input)
         {
 
             Byte[] boundaryBytes = enc.GetBytes(GetBoundary(contentType));
             Int32 boundaryLen = boundaryBytes.Length;
             string fileName = Guid.NewGuid().ToString("N") + ".temp";
-            using (FileStream output = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+            DirectoryInfo dir = new DirectoryInfo(FILE_UPLOAD_PATH);
+            if (!dir.Exists)
+            {
+                dir.Create();
+            }
+            FileInfo res = new FileInfo(Path.Join(FILE_UPLOAD_PATH, fileName));
+            using (FileStream output = new FileStream(res.FullName, FileMode.Create, FileAccess.Write))
             {
                 Byte[] buffer = new Byte[1024];
                 Int32 len = input.Read(buffer, 0, 1024);
@@ -381,7 +386,7 @@ namespace NetTaskServer.HttpServer
                 }
             }
 
-            return fileName;
+            return res;
         }
 
         private Int32 IndexOf(Byte[] buffer, Int32 len, Byte[] boundaryBytes)

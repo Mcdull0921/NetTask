@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using NetTaskServer.HttpServer;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -94,6 +95,32 @@ namespace NetTaskServer.Common
             return JsonConvert.DeserializeObject<T>(jsonString);
         }
 
+        public static TokenClaims ConvertStringToTokenClaims(string token)
+        {
+            try
+            {
+                token = EncryptHelper.AES_Decrypt(token);
+                string[] tokenarr = token.Split('|');
+                TokenClaims tkClaims = new TokenClaims();
+                tkClaims.UserKey = tokenarr[0];
+                tkClaims.Role = int.Parse(tokenarr[2]);
+                try
+                {
+                    tkClaims.LastTime = DateTime.Parse(tokenarr[1]);
+                }
+                catch
+                {
+                    tkClaims.LastTime = new DateTime(2500, 1, 1);
+                }
+
+                return tkClaims;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("token格式不正确" + ex.ToString());
+            }
+
+        }
 
         //From https://stackoverflow.com/questions/4619735/how-to-read-last-n-lines-of-log-file
         ///<summary>Returns the end of a text reader.</summary>

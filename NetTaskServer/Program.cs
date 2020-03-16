@@ -14,14 +14,15 @@ namespace NetTaskServer
     class Program
     {
         const string DB_PATH = "./user.db";
-        const string LOG_PATH = "./logs";
+        const string LOG_PATH = "./Logs";
         static void Main(string[] args)
         {
 
             CancellationTokenSource ctsHttp = new CancellationTokenSource();
             IDbOperator DbOp = new LiteDbOperator(DB_PATH);//加载数据库
-            HttpServerAPIs api = new HttpServerAPIs(TaskManager.Create(), DbOp, LOG_PATH);
-            HttpServer.HttpServer httpServer = new HttpServer.HttpServer(NLog.LogManager.GetCurrentClassLogger(), api);
+            var taskManager = TaskManager.Create();
+            HttpServerAPIs api = new HttpServerAPIs(taskManager, DbOp, LOG_PATH);
+            HttpServer.HttpServer httpServer = new HttpServer.HttpServer(taskManager.logger, api);
             var t = httpServer.StartHttpService(ctsHttp, 12315);
 
             Console.ReadKey();

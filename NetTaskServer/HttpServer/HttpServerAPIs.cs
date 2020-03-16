@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace NetTaskServer.HttpServer
 {
@@ -52,7 +53,7 @@ namespace NetTaskServer.HttpServer
             }
 
             //2.给token
-            string output = $"{username}|{DateTime.Now.ToString("yyyy-MM-dd")}";
+            string output = $"{username}|{DateTime.Now.ToString("yyyy-MM-dd")}|{user["role"].Value}";
             string token = EncryptHelper.AES_Encrypt(output);
             return string.Format(@"
 <html>
@@ -153,6 +154,7 @@ window.location.href='main.html';
             return ServerContext.Tasks.Select(p => new
             {
                 id = p.Id.ToString(),
+                aid = p.AssemblyId.ToString(),
                 name = p.Name,
                 typeName = p.TypeName,
                 status = p.Status.GetDescription(),
@@ -259,7 +261,7 @@ window.location.href='main.html';
         [Secure]
         public IEnumerable<string> GetAssemblies()
         {
-            var dirs = Directory.GetDirectories(ServerContext.AssemblyPath).Select(p => new DirectoryInfo(p));
+
             var res = new List<string>();
             Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
             foreach (var task in ServerContext.Tasks)
@@ -271,9 +273,9 @@ window.location.href='main.html';
                 }
                 dic[aid].Add(task.TypeName);
             }
-            foreach (var dir in dirs)
+            foreach (var aid in dic.Keys)
             {
-                var aid = dir.Name;
+                var dir = new DirectoryInfo(Path.Join(ServerContext.AssemblyPath, aid));
                 res.Add(new
                 {
                     id = aid,
@@ -294,10 +296,170 @@ window.location.href='main.html';
                 throw new TaskNotStopException("该程序集中有任务未停止，请先停止任务！");
             ServerContext.DeleteAssembly(aid);
         }
+
+
+        [FileUpload]
+        [Secure]
+        public void UploadAssembly(FileInfo fileInfo)
+        {
+            var assemblyId = Guid.NewGuid();
+            var rootDir = Path.Join(ServerContext.AssemblyPath, assemblyId.ToString());
+            Directory.CreateDirectory(rootDir);
+            try
+            {
+                UnZip(fileInfo.FullName, rootDir, null);
+                System.Threading.Thread.Sleep(500);
+                ServerContext.LoadAssembly(assemblyId);
+            }
+            catch
+            {
+                Directory.Delete(rootDir, true);
+                throw;
+            }
+            finally
+            {
+                File.Delete(fileInfo.FullName);
+            }
+        }
+
+        /// <summary>   
+        /// 解压功能(解压压缩文件到指定目录)   
+        /// </summary>   
+        /// <param name="fileToUnZip">待解压的文件</param>   
+        /// <param name="zipedFolder">指定解压目标目录</param>   
+        /// <param name="password">密码</param>   
+        /// <returns>解压结果</returns>   
+        private bool UnZip(string fileToUnZip, string zipedFolder, string password)
+        {
+            bool result = true;
+            FileStream fs = null;
+            ZipInputStream zipStream = null;
+            ZipEntry ent = null;
+            string fileName;
+
+            if (!File.Exists(fileToUnZip))
+                return false;
+
+            if (!Directory.Exists(zipedFolder))
+                Directory.CreateDirectory(zipedFolder);
+
+            try
+            {
+                zipStream = new ZipInputStream(File.OpenRead(fileToUnZip));
+                if (!string.IsNullOrEmpty(password)) zipStream.Password = password;
+                while ((ent = zipStream.GetNextEntry()) != null)
+                {
+                    if (!string.IsNullOrEmpty(ent.Name))
+                    {
+                        fileName = Path.Combine(zipedFolder, ent.Name);
+                        fileName = fileName.Replace('/', '\\');//change by Mr.HopeGi   
+
+                        if (fileName.EndsWith("\\"))
+                        {
+                            Directory.CreateDirectory(fileName);
+                            continue;
+                        }
+
+                        fs = File.Create(fileName);
+                        int size = 2048;
+                        byte[] data = new byte[size];
+                        while (true)
+                        {
+                            size = zipStream.Read(data, 0, data.Length);
+                            if (size > 0)
+                                fs.Write(data, 0, data.Length);
+                            else
+                                break;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                result = false;
+            }
+            finally
+            {
+                if (fs != null)
+                {
+                    fs.Close();
+                    fs.Dispose();
+                }
+                if (zipStream != null)
+                {
+                    zipStream.Close();
+                    zipStream.Dispose();
+                }
+                if (ent != null)
+                {
+                    ent = null;
+                }
+                GC.Collect();
+                GC.Collect(1);
+            }
+            return result;
+        }
         #endregion
 
         #region 日志
+        [Secure]
+        [API]
+        public IEnumerable<string> GetLogFiles(string number)
+        {
+            int n = int.Parse(number);
+            List<string> res = new List<string>();
+            DirectoryInfo root = new DirectoryInfo(baseLogFilePath);
+            var dirs = root.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                var logs = new List<LogInfo>();
+                var logLevels = new Tuple<string, int>[] { new Tuple<string, int>("info", 0), new Tuple<string, int>("error", 1) };
+                foreach (var level in logLevels)
+                {
+                    var levelDir = new DirectoryInfo(Path.Join(dir.FullName, level.Item1));
+                    if (levelDir.Exists)
+                    {
+                        logs.AddRange(levelDir.GetFiles().Select(p => new LogInfo { name = p.Name, level = level.Item2 }).ToArray());
+                    }
+                }
+                res.Add(new { name = dir.Name, logs = logs.OrderByDescending(p => p.name).Take(n) }.ToJsonString());
+            }
+            return res;
+        }
 
+        [Secure]
+        [API]
+        public string[] GetLogFileInfo(string lastLines)
+        {
+            int lastLinesInt = int.Parse(lastLines);
+            string baseLogPath = "./log";
+            DirectoryInfo dir = new DirectoryInfo(baseLogPath);
+            FileInfo[] files = dir.GetFiles("*.log*");
+            DateTime recentWrite = DateTime.MinValue;
+            FileInfo recentFile = null;
+
+            foreach (FileInfo file in files)
+            {
+                if (file.LastWriteTime > recentWrite)
+                {
+                    recentWrite = file.LastWriteTime;
+                    recentFile = file;
+                }
+            }
+
+            //文件会被独占
+            using (var fs = new FileStream(recentFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite))
+            {
+                var sr = new StreamReader(fs);
+                return sr.Tail(lastLinesInt);
+            }
+        }
+
+        class LogInfo
+        {
+            public string name { get; set; }
+            public int level { get; set; }
+        }
         #endregion
     }
 }

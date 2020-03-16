@@ -1,12 +1,12 @@
 ﻿var Task=new (function (){
     this.getTasks=function() {
-        $.get(basepath + "GetTasks", function (res) {
-            var data = res.Data;
+        ajax('GetTasks',null,function (data) {
             var htmlStr = "";
             for (var i=0; i< data.length;i++) {
                 var task = $.parseJSON(data[i]);
                 htmlStr += "<tr>" +
                     "<td><span title='"+ task.id +"'>" + task.id.substr(0,8)+'...' + "</span></td>" +
+                    "<td><span title='"+ task.aid +"'>" + task.aid.substr(0,8)+'...' + "</span></td>" +
                     "<td>" + task.name + "</td>" +
                     "<td>" + task.typeName + "</td>" +
                     "<td>" + task.status + "</td>" +
