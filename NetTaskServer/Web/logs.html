@@ -1,32 +1,39 @@
 ﻿<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h3">日志</h1>
-    <div class="btn-toolbar mb-2 mb-md-0" style="display: flow-root;">
-            <!-- <div class="pretty p-switch p-fill">
-                    <input type="checkbox" id="cbAutoRefresh" />
-                    <div class="state"><label>自动刷新</label>
-                    </div>
-                </div> -->
-
-                <div class="pretty p-default p-curve">
-                    <input type="checkbox" name="color"/>
-                    <div class="state p-danger-o"><label>只看错误</label>
-                    </div>
-                </div>
-                
+    <div class="btn-toolbar mb-2 mb-md-0" style="display: flow-root;">             
         <div class="btn-group">
-            <button type="button" onclick="refreshLog()" class="btn btn-sm btn-outline-secondary"> <span data-feather="refresh-ccw"></span>
+            <button type="button" onclick="Log.getLogFiles();" class="btn btn-sm btn-outline-secondary"> <span data-feather="refresh-ccw"></span>
                 刷新日志</button>
         </div>
 
     </div>
 </div>
+
+<h5>最新日志：</h5>
 <!--seek line-->
 <div class="form-group">
-    <label>当前日志：</label>
+    <div class="pretty p-default p-curve">
+        <input type="checkbox"  id="cbShowInTime" checked/>
+        <div class="state p-primary-o"><label>实时显示</label>
+        </div>
+    </div>
+    <select class="form-control mb-2" id="ddlTaskName" style="display: inline;width: 300px;" >
+
+      </select>
     <textarea class="form-control" id="tbxLog" style="font-size:10px" rows="10"></textarea>
 </div>
+<h5>往期日志：</h5>
+<div class="pretty p-default p-curve">
+    <input type="checkbox"  id="cbOnlyError" />
+    <div class="state p-danger-o"><label>只看错误</label>
+    </div>
+</div>
+<br><br>
 <div class="form-group" id="divOldLog">
     <!-- <h6>往期日志：</h6>
+    <div class="btn-group">
         <button type="button" class="btn btn-outline-warning mb-2"><span data-feather="file"></span> 2018-11-11.txt</button>
+        <button type="button" class="btn btn-outline-warning mb-2"><span data-feather="x"></span></button>
+    </div>
         <button type="button" class="btn btn-outline-warning mb-2"><span data-feather="file"></span> 2018-11-11.txt</button> -->
 </div>

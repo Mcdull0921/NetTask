@@ -404,16 +404,27 @@ window.location.href='main.html';
         #region 日志
         [Secure]
         [API]
-        public IEnumerable<string> GetLogFiles(string number)
+        public IEnumerable<string> GetLogNames()
+        {
+            return new DirectoryInfo(baseLogFilePath).GetDirectories().Select(p => p.Name).ToArray();
+        }
+
+
+        [Secure]
+        [API]
+        public IEnumerable<string> GetLogFiles(string number, string error)
         {
             int n = int.Parse(number);
+            bool onlyError = bool.Parse(error);
+            var logLevels = new List<Tuple<string, int>>() { new Tuple<string, int>("error", 1) };
+            if (!onlyError)
+                logLevels.Insert(0, new Tuple<string, int>("info", 0));
             List<string> res = new List<string>();
             DirectoryInfo root = new DirectoryInfo(baseLogFilePath);
             var dirs = root.GetDirectories();
             foreach (var dir in dirs)
             {
                 var logs = new List<LogInfo>();
-                var logLevels = new Tuple<string, int>[] { new Tuple<string, int>("info", 0), new Tuple<string, int>("error", 1) };
                 foreach (var level in logLevels)
                 {
                     var levelDir = new DirectoryInfo(Path.Join(dir.FullName, level.Item1));
@@ -428,13 +439,42 @@ window.location.href='main.html';
         }
 
         [Secure]
+        [FormAPI]
+        public string GetLogInfo(string log)
+        {
+            log = log.Replace('$', '/');
+            var file = new FileInfo(Path.Join(baseLogFilePath, log));
+            if (file.Exists)
+            {
+                using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite))
+                {
+                    var sr = new StreamReader(fs, Encoding.UTF8);
+                    return string.Join("<br>", sr.Tail(1000));
+                }
+            }
+            throw new FileNotFoundException("日志不存在");
+        }
+
+        [Secure]
         [API]
-        public string[] GetLogFileInfo(string lastLines)
+        public void DeleteLog(string log)
+        {
+            log = log.Replace('$', '/');
+            var file = new FileInfo(Path.Join(baseLogFilePath, log));
+            if (file.Exists)
+            {
+                File.Delete(file.FullName);
+                return;
+            }
+            throw new FileNotFoundException("日志不存在");
+        }
+
+        [Secure]
+        [API]
+        public string GetLogInfoRealtime(string taskname, string lastLines)
         {
             int lastLinesInt = int.Parse(lastLines);
-            string baseLogPath = "./log";
-            DirectoryInfo dir = new DirectoryInfo(baseLogPath);
-            FileInfo[] files = dir.GetFiles("*.log*");
+            FileInfo[] files = new DirectoryInfo(Path.Join(baseLogFilePath, taskname, "info")).GetFiles();
             DateTime recentWrite = DateTime.MinValue;
             FileInfo recentFile = null;
 
@@ -446,12 +486,13 @@ window.location.href='main.html';
                     recentFile = file;
                 }
             }
-
+            if (recentFile == null)
+                return "";
             //文件会被独占
             using (var fs = new FileStream(recentFile.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite))
             {
                 var sr = new StreamReader(fs);
-                return sr.Tail(lastLinesInt);
+                return string.Join("\r\n", sr.Tail(lastLinesInt));
             }
         }
 

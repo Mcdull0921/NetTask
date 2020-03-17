@@ -193,7 +193,7 @@ namespace NetTaskServer.HttpServer
                         else if (method.GetCustomAttribute<FormAPIAttribute>() != null)
                         {
                             //返回表单页面
-                            response.ContentType = "text/html";
+                            response.ContentType = "text/html;charset=utf-8";
                             jsonObj = method.Invoke(ControllerInstance, parameters);
                             await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.ToString()));
                         }
