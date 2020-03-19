@@ -42,6 +42,11 @@ namespace NetTaskServer.HttpServer
     /// </summary>
     public class SecureAttribute : Attribute
     {
+        public int min_role { get; private set; }
+        public SecureAttribute(int min_role = 0)
+        {
+            this.min_role = min_role;
+        }
     }
 
     /// <summary>
@@ -49,5 +54,10 @@ namespace NetTaskServer.HttpServer
     /// </summary>
     public class ValidateAPIAttribute : Attribute
     {
+    }
+
+    public class LoginInfoAttribute : Attribute
+    {
+
     }
 }

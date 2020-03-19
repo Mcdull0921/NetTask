@@ -5,7 +5,7 @@
 }
 
 body {
-    font-size: .875rem;
+    font-size: .925rem;
   }
   
   .feather {
@@ -19,7 +19,7 @@ body {
    */
   
   .sidebar {
-      position: relative;
+      position: fixed;
       top: 0;
       bottom: 0;
       left: 0;

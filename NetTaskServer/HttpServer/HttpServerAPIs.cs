@@ -15,6 +15,8 @@ namespace NetTaskServer.HttpServer
     class HttpServerAPIs
     {
         public const string SUPER_VARIABLE_INDEX_ID = "$index_id$";
+        private const string MAIN_MODULE = "NetTaskManager.TaskManager";
+
         private TaskManager ServerContext;
         private IDbOperator Dbop;
         private string baseLogFilePath;
@@ -37,7 +39,7 @@ namespace NetTaskServer.HttpServer
 
         #region 登录
         [FormAPI]
-        public string Login(string username, string userpwd)
+        public string Login(string username, string userpwd, string ip)
         {
             //1.校验
             dynamic user = Dbop.Get(username)?.ToDynamic();
@@ -51,7 +53,7 @@ namespace NetTaskServer.HttpServer
             {
                 return "Error: Wrong password.Please <a href='javascript:history.go(-1)'>go backward</a>.";
             }
-
+            ServerContext.logger.Info($"用户{username}登录成功，IP：{ip}");
             //2.给token
             string output = $"{username}|{DateTime.Now.ToString("yyyy-MM-dd")}|{user["role"].Value}";
             string token = EncryptHelper.AES_Encrypt(output);
@@ -59,18 +61,20 @@ namespace NetTaskServer.HttpServer
 <html>
 <head><script>
 document.cookie='NSPTK={0}; path=/;';
+document.cookie='ROLE={1}; path=/;';
+document.cookie='UNAME={2}; path=/;';
 document.write('Redirecting...');
 window.location.href='main.html';
 </script>
 </head>
 </html>
-            ", token);
+            ", token, user["role"].Value, username);
         }
         #endregion
 
         #region 用户
         [API]
-        [Secure]
+        [Secure(2)]
         public List<string> GetUsers()
         {
             List<string> userStrList = Dbop.Select(0, 999);
@@ -78,8 +82,8 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
-        public void AddUserV2(string userName, string userpwd, string role)
+        [Secure(2), LoginInfo]
+        public void AddUserV2(string userName, string userpwd, string role, LoginInfo info = null)
         {
 
             if (Dbop.Exist(userName))
@@ -95,10 +99,12 @@ window.location.href='main.html';
                 role = int.Parse(role)
             };
             Dbop.Insert(userName, user.ToJsonString());
+            if (info != null)
+                ServerContext.logger.Info($"{info.username}添加了用户{userName}");
         }
 
         [ValidateAPI]
-        [Secure]
+        [Secure(2)]
         public bool ValidateUserName(string isEdit, string oldUsername, string newUserName)
         {
             if (isEdit == "1" && oldUsername == newUserName)
@@ -111,8 +117,8 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
-        public void RemoveUser(string userIndex, string userNames)
+        [Secure(2), LoginInfo]
+        public void RemoveUser(string userIndex, string userNames, LoginInfo info)
         {
             try
             {
@@ -123,6 +129,7 @@ window.location.href='main.html';
                     var userId = int.Parse(arr[i]);
                     Dbop.Delete(userId);//litedb不起作用
                     Dbop.DeleteHash(userNameArr[i]);
+                    ServerContext.logger.Info($"{info.username}删除了用户{userNameArr[i]}");
                 }
             }
             catch (Exception ex)
@@ -132,8 +139,8 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
-        public void ResetPwd(string userName, string userPwd)
+        [Secure(2), LoginInfo]
+        public void ResetPwd(string userName, string userPwd, LoginInfo info)
         {
 
             if (!Dbop.Exist(userName))
@@ -143,6 +150,7 @@ window.location.href='main.html';
             User user = Dbop.Get(userName)?.ToObject<User>();
             user.userPwd = EncryptHelper.SHA256(userPwd);
             Dbop.Update(userName, user.ToJsonString());
+            ServerContext.logger.Info($"{info.username}重置了用户{userName}的密码");
         }
         #endregion
 
@@ -167,42 +175,42 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void StartAllTasks()
         {
             ServerContext.StartAllTask();
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void StopAllTasks()
         {
             ServerContext.StopAllTask();
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void StartTask(string id)
         {
             ServerContext.StartTask(Guid.Parse(id));
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void StopTask(string id)
         {
             ServerContext.StopTask(Guid.Parse(id));
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void RunTask(string id)
         {
             ServerContext.RunImmediatelyTask(Guid.Parse(id));
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public TaskAgent GetTask(string id)
         {
             var gid = Guid.Parse(id);
@@ -219,7 +227,7 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void EditTaskRunParam(string id, string timerType, string interval, string startTime, string runOnStart)
         {
             DateTime? time = null;
@@ -231,7 +239,7 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public object GetTaskConfig(string id)
         {
             var gid = Guid.Parse(id);
@@ -248,7 +256,7 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
+        [Secure(1)]
         public void EditTaskConfig(string id, string configs)
         {
             var kv = JsonConvert.DeserializeObject<KeyValuePair<string, string>[]>(configs);
@@ -258,7 +266,7 @@ window.location.href='main.html';
 
         #region 程序集
         [API]
-        [Secure]
+        [Secure(2)]
         public IEnumerable<string> GetAssemblies()
         {
 
@@ -288,19 +296,20 @@ window.location.href='main.html';
         }
 
         [API]
-        [Secure]
-        public void DelAssembly(string id)
+        [Secure(2), LoginInfo]
+        public void DelAssembly(string id, LoginInfo info)
         {
             var aid = Guid.Parse(id);
             if (ServerContext.Tasks.Count(t => t.AssemblyId == aid && t.Status != TaskStatus.Stop) > 0)
                 throw new TaskNotStopException("该程序集中有任务未停止，请先停止任务！");
             ServerContext.DeleteAssembly(aid);
+            ServerContext.logger.Info($"{info.username}删除了程序集{aid}");
         }
 
 
         [FileUpload]
-        [Secure]
-        public void UploadAssembly(FileInfo fileInfo)
+        [Secure(2), LoginInfo]
+        public void UploadAssembly(FileInfo fileInfo, LoginInfo info)
         {
             var assemblyId = Guid.NewGuid();
             var rootDir = Path.Join(ServerContext.AssemblyPath, assemblyId.ToString());
@@ -310,6 +319,7 @@ window.location.href='main.html';
                 UnZip(fileInfo.FullName, rootDir, null);
                 System.Threading.Thread.Sleep(500);
                 ServerContext.LoadAssembly(assemblyId);
+                ServerContext.logger.Info($"{info.username}添加了程序集{assemblyId.ToString()}");
             }
             catch
             {
@@ -402,11 +412,19 @@ window.location.href='main.html';
         #endregion
 
         #region 日志
+        private IEnumerable<DirectoryInfo> GetLogDirectories()
+        {
+            var res = new List<DirectoryInfo>();
+            res.Add(new DirectoryInfo(Path.Join(baseLogFilePath, MAIN_MODULE)));
+            res.AddRange(ServerContext.Tasks.Select(p => new DirectoryInfo(Path.Join(baseLogFilePath, p.TypeName))));
+            return res.Where(p => p.Exists);
+        }
+
         [Secure]
         [API]
         public IEnumerable<string> GetLogNames()
         {
-            return new DirectoryInfo(baseLogFilePath).GetDirectories().Select(p => p.Name).ToArray();
+            return GetLogDirectories().Select(p => p.Name);
         }
 
 
@@ -420,8 +438,7 @@ window.location.href='main.html';
             if (!onlyError)
                 logLevels.Insert(0, new Tuple<string, int>("info", 0));
             List<string> res = new List<string>();
-            DirectoryInfo root = new DirectoryInfo(baseLogFilePath);
-            var dirs = root.GetDirectories();
+            var dirs = GetLogDirectories();
             foreach (var dir in dirs)
             {
                 var logs = new List<LogInfo>();
@@ -455,7 +472,7 @@ window.location.href='main.html';
             throw new FileNotFoundException("日志不存在");
         }
 
-        [Secure]
+        [Secure(2)]
         [API]
         public void DeleteLog(string log)
         {

@@ -30,8 +30,12 @@ var Log=new (function (){
                 html += "<h6>"+ d.name +"</h6>";
                 for (var j =0;j<d.logs.length;j++) {
                     html += "<div class=\"btn-group\"><button type='button' onclick='Log.getLogFile(\""+ (d.name+'$'+levels[d.logs[j].level]+'$'+d.logs[j].name) +"\")' class='btn btn-outline-"+ icons[d.logs[j].level] +" mb-2'><span data-feather='file'></span> "
-                        + d.logs[j].name+ "</button> "+
-                        '<button type="button" onclick=\'Log.delLog("'+(d.name+'$'+levels[d.logs[j].level]+'$'+d.logs[j].name)+'")\' class="btn btn-outline-'+ icons[d.logs[j].level] +' mb-2 mr-2"><span data-feather="x"></span></button></div>\n';
+                        + d.logs[j].name+ "</button> ";
+                        if(Number(getCookie("ROLE"))<2){}
+                        else{
+                            html+='<button type="button" onclick=\'Log.delLog("'+(d.name+'$'+levels[d.logs[j].level]+'$'+d.logs[j].name)+'")\' class="btn btn-outline-'+ icons[d.logs[j].level] +' mb-2 mr-2"><span data-feather="x"></span></button>';
+                        }
+                        html+='</div>\n';
                 }
             }
             $("#divOldLog").html(html);
@@ -89,59 +93,4 @@ var Log=new (function (){
         window.autoLogRefresh = setInterval(Log.getLogInfoRealtime,1000);
     });
 })();
-
-
-
-
-
-// (function () {
-//     refreshLog();
-// }());
-
-// function getLogFiles() {
-//     $.get(basepath
-//         + "GetLogFiles",
-//         function (res) {
-//             var data = res.Data;
-//             var html = "<label>往期日志：</label><br />";
-//             for (i in data) {
-//                 html += "<button type='button' onclick='getLogFile(\""
-//                     + data[i] + "\")' class='btn btn-outline-warning mb-2'><span data-feather='file'></span>"
-//                     + data[i]
-//                     + "</button> ";
-//                 i++;
-//             }
-//             $("#divOldLog").html(html);
-//         }
-//     );
-// };
-
-// function getLogFile(filekey) {
-//     var apiUrl = basepath + "GetLogFile?filekey=" + filekey;
-//     window.open(apiUrl);
-// }
-
-// function getLogFileInfo(lines) {
-//     var apiUrl = basepath + "GetLogFileInfo?lastLines=" + lines;
-//     $.get(apiUrl,
-//         function (res) {
-//             var data = res.Data;
-//             var logText = "";
-//             for (i in data) {
-//                 logText += data[i] + "\r\n";
-//             }
-//             $("#tbxLog").val(logText);
-//         }
-//     );
-// }
-
-// function refreshLog() {
-//     getLogFiles();
-//     getLogFileInfo(20);
-//     setTimeout(scrollToBottom, 200);
-// }
-
-// function scrollToBottom() {
-//     $('#tbxLog').scrollTop($('#tbxLog')[0].scrollHeight);
-// }
 

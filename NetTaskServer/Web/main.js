@@ -15,8 +15,7 @@ var basepath = "/";//api根地址,这里需要和配置文件一致
                 storedHash = window.location.hash;
                 hashChanged(storedHash);
             }
-        },
-            100);
+        },100);
     }
 
     function hashChanged(storedHash) {
@@ -52,13 +51,16 @@ var basepath = "/";//api根地址,这里需要和配置文件一致
     }
 
     $(document).ready(function () {
-        loadContent(window.location.hash);
-        //选中项
-    }
-    );
-}
-
-)();
+        hashChanged(window.location.hash);
+        if($('#userItem')&&Number(getCookie("ROLE"))<2) 
+            $('#userItem').css('display','none');
+        if($('#assemblyItem')&&Number(getCookie("ROLE"))<2) 
+            $('#assemblyItem').css('display','none');
+        if($('#user_name')) 
+            $('#user_name').text(getCookie("UNAME"));
+        // loadContent(window.location.hash);
+    });
+})();
 
 function redAlert(msg) {
     $("#red_alert span:first").html(msg);
@@ -95,6 +97,7 @@ function delCookie(name) {
 
 function signOut() {
     delCookie("NSPTK");
+    delCookie("ROLE");
     location.href = "/login.html";
 }
 

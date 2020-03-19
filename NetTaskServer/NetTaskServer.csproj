@@ -23,6 +23,7 @@
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.min.js" />
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.zh-CN.js" />
     <None Remove="Web\favicon.ico" />
+    <None Remove="Web\favicon.ico.bak" />
     <None Remove="Web\feather.min.js" />
     <None Remove="Web\fonts\glyphicons-halflings-regular.eot" />
     <None Remove="Web\fonts\glyphicons-halflings-regular.svg" />
@@ -31,6 +32,7 @@
     <None Remove="Web\jquery-slim.min.js" />
     <None Remove="Web\loading-s.gif" />
     <None Remove="Web\login.html" />
+    <None Remove="Web\logo.png" />
     <None Remove="Web\logs.html" />
     <None Remove="Web\logs.js" />
     <None Remove="Web\main.html" />
@@ -87,6 +89,9 @@
     <Content Include="Web\favicon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Web\favicon.ico.bak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Web\feather.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -106,6 +111,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web\login.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Web\logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web\logs.html">

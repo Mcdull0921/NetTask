@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.5">
-    <title>NetTask后台管理</title>
+    <title>NetTask管理系统</title>
     <!-- Bootstrap core CSS -->
     <link href="bootstrap.min.css" rel="stylesheet">
     <link href="datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
@@ -50,14 +50,16 @@
         <div class="navbar-light col-sm-3 col-md-2 col-xl-1.5 mr-0">
             <a href="main.html" class="d-none d-sm-block">
 
-                <img src="NSmartProxyNew.png" width="200px" />
+                <!-- <img src="NSmartProxyNew.png" width="200px" /> -->
+                <img src="logo.png" width="254px" />
             </a>
 
         </div>
 
         <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
-        <ul class="navbar-nav px-3">
-            <li class="nav-item text-nowrap">
+        <div style="text-align: right;width: 100%;">欢迎你，<span id="user_name"></span>  </div>  
+        <ul class="navbar-nav px-3">    
+            <li class="nav-item text-nowrap">             
                 <a class="nav-link" href="javascript:signOut();"><span data-feather="log-out"></span>退出登录</a>
             </li>
         </ul>
@@ -74,29 +76,35 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
+                        <li class="nav-item" id="userItem">
                             <a class="nav-link" href="#users">
                                 <span data-feather="users"></span>
                                 用户
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" id="taskItem">
                             <a class="nav-link" href="#tasks">
                                 <span data-feather="trello"></span>
                                 任务
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" id="logItem">
                             <a class="nav-link" href="#logs">
                                 <span data-feather="file-text"></span>
                                 日志
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" id="assemblyItem">
                             <a class="nav-link" href="#assembly">
                                 <span data-feather="settings"></span>
                                 程序集
                             </a>
+                        </li>
+                        <li class="nav-item" id="helpItem">
+                                <a class="nav-link" href="#help">
+                                    <span data-feather="help-circle"></span>
+                                    帮助
+                                </a>
                         </li>
                     </ul>
 

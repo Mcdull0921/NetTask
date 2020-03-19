@@ -15,8 +15,12 @@
                     "<td>" + task.interval + "</td>" +
                     "<td>" + task.runOnStart + "</td>" +
                     "<td>" + task.startTime + "</td>" ;
-                htmlStr += "<td>" + dropDownButtonHtml(task.id) + "</td>" +
-                    "</tr>";
+                    if(Number(getCookie("ROLE"))<1){
+
+                    }else{
+                        htmlStr += "<td>" + dropDownButtonHtml(task.id) + "</td>" ;
+                    }
+                    htmlStr +="</tr>";
             }
             $("#tb_body").html(htmlStr);
             if (feather)
@@ -165,6 +169,15 @@
                 window.clearInterval(window.autoTaskRefresh);
            }
         }); 
+        var operate='<button type="button" class="btn btn-sm btn-outline-secondary" onclick="Task.getTasks();"><span data-feather="refresh-cw"></span> 刷新</button>';
+        if(Number(getCookie("ROLE"))<1){
+            $('#thOperate').css('display','none');
+        }
+        else{
+            operate+='<button type="button"  class="btn btn-sm btn-outline-secondary" onclick="Task.startAll();"><span data-feather="play-circle"></span> 全部开始</button>';
+            operate+='<button type="button" class="btn btn-sm btn-outline-secondary" onclick="Task.stopAll();"><span data-feather="stop-circle"></span> 全部停止</button>';
+        }
+        $('#btnGroup').html(operate);
         Task.getTasks();
     });
 })();

@@ -3,6 +3,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -19,7 +20,6 @@ namespace NetTaskServer.HttpServer
         private const string INDEX_PAGE = "/main.html";
         private const string BASE_FILE_PATH = @"E:\Github\NetTask\NetTaskServer\Web"; // "./Web/";
         private const string FILE_UPLOAD_PATH = "./temp";
-        //private const string BASE_LOG_FILE_PATH = "./log";
 
         public Dictionary<string, MemoryStream> FilesCache = new Dictionary<string, MemoryStream>(20);
         private Logger Logger { get; set; }
@@ -94,9 +94,9 @@ namespace NetTaskServer.HttpServer
             var response = context.Response;
             //TODO XX 设置该同源策略为了方便调试，真实项目请确保同源
 
-#if DEBUG
-            response.AddHeader("Access-Control-Allow-Origin", "*");
-#endif
+            //禁止跨站访问
+            //response.AddHeader("Access-Control-Allow-Origin", "*");
+
             response.Headers["Server"] = "";
             try
             {
@@ -150,13 +150,12 @@ namespace NetTaskServer.HttpServer
                     object jsonObj;
                     //List<string> qsStrList;
                     int qsCount = request.QueryString.Count;
-                    object[] parameters = null;
+                    List<object> parameters = new List<object>();
                     if (qsCount > 0)
                     {
-                        parameters = new object[request.QueryString.Count];
                         for (int i = 0; i < request.QueryString.Count; i++)
                         {
-                            parameters[i] = request.QueryString[i];
+                            parameters.Add(request.QueryString[i]);
                         }
                     }
 
@@ -170,7 +169,7 @@ namespace NetTaskServer.HttpServer
                             //Server.Logger.Debug($"无效的方法名{unit}");
                             throw new Exception($"无效的方法名{unit}");
                         }
-
+                        LoginInfo loginInfo = null;
                         if (method.GetCustomAttribute<SecureAttribute>() != null)
                         {
                             if (request.Cookies["NSPTK"] == null)
@@ -181,27 +180,45 @@ namespace NetTaskServer.HttpServer
                             {
                                 throw new Exception("登录信息异常。");
                             }
+                            var secure = method.GetCustomAttribute<SecureAttribute>();
+                            if (UserClaims.Role < secure.min_role)
+                            {
+                                throw new Exception("没有权限。");
+                            }
+                            loginInfo = new LoginInfo
+                            {
+                                username = UserClaims.UserKey,
+                                role = UserClaims.Role,
+                                ip = request.RemoteEndPoint.Address
+                            };
                         }
-
+                        if (method.GetCustomAttribute<LoginInfoAttribute>() != null)
+                        {
+                            parameters.Add(loginInfo);
+                        }
                         if (method.GetCustomAttribute<APIAttribute>() != null)
                         {
                             //返回json，类似WebAPI
                             response.ContentType = "application/json";
-                            jsonObj = method.Invoke(ControllerInstance, parameters);
+                            jsonObj = method.Invoke(ControllerInstance, parameters.ToArray());
                             await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
                         }
                         else if (method.GetCustomAttribute<FormAPIAttribute>() != null)
                         {
                             //返回表单页面
                             response.ContentType = "text/html;charset=utf-8";
-                            jsonObj = method.Invoke(ControllerInstance, parameters);
+                            if (unit.ToUpper().Equals("LOGIN"))
+                            {
+                                parameters.Add(request.RemoteEndPoint.Address.ToString());
+                            }
+                            jsonObj = method.Invoke(ControllerInstance, parameters.ToArray());
                             await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.ToString()));
                         }
                         else if (method.GetCustomAttribute<ValidateAPIAttribute>() != null)
                         {
                             //验证模式
                             response.ContentType = "application/json";
-                            bool validateResult = (bool)method.Invoke(ControllerInstance, parameters);
+                            bool validateResult = (bool)method.Invoke(ControllerInstance, parameters.ToArray());
                             if (validateResult == true)
                             {
                                 await response.OutputStream.WriteAsync(HtmlUtil.GetContent("{\"valid\":true}"));
@@ -233,12 +250,9 @@ namespace NetTaskServer.HttpServer
                             response.ContentType = "application/json";
                             if (request.HttpMethod.ToUpper() == "POST")
                             {
-                                List<object> paraList = new List<object>();
                                 var file = SaveFile(request.ContentEncoding, request.ContentType, request.InputStream);
-                                paraList.Add(file);
-                                if (parameters != null)
-                                    paraList.AddRange(parameters);
-                                jsonObj = method.Invoke(ControllerInstance, paraList.ToArray());
+                                parameters.Add(file);
+                                jsonObj = method.Invoke(ControllerInstance, parameters.ToArray());
                                 await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
                             }
                             else
