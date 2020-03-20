@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<task entrypoint="DemoTask.dll">
+    <add key="name" value="NetTask" />
+</task>

@@ -37,6 +37,12 @@ body {
     overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
   }
   
+  @media screen and (max-width: 768px) {
+    .sidebar {
+      position: sticky;
+    }
+  }
+
   @supports ((position: -webkit-sticky) or (position: sticky)) {
     .sidebar-sticky {
       position: -webkit-sticky;

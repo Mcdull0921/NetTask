@@ -1,4 +1,5 @@
 ﻿using NetTaskServer.Common;
+using NetTaskServer.Data;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -228,22 +229,22 @@ namespace NetTaskServer.HttpServer
                                 await response.OutputStream.WriteAsync(HtmlUtil.GetContent("{\"valid\":false}"));
                             }
                         }
-                        //else if (method.GetCustomAttribute<FileAPIAttribute>() != null)
-                        //{
-                        //    //文件下载
-                        //    response.ContentType = "application/octet-stream";
-                        //    if (!(method.Invoke(ControllerInstance, parameters) is FileDTO fileDto))
-                        //    {
-                        //        throw new Exception("文件返回失败，请查看错误日志。");
-                        //    }
+                        else if (method.GetCustomAttribute<FileAPIAttribute>() != null)
+                        {
+                            //文件下载
+                            response.ContentType = "application/octet-stream";
+                            if (!(method.Invoke(ControllerInstance, parameters.ToArray()) is FileDTO fileDto))
+                            {
+                                throw new Exception("文件返回失败，请查看错误日志。");
+                            }
 
-                        //    response.Headers.Add("Content-Disposition", "attachment;filename=" + fileDto.FileName);
-                        //    //response.OutputStream.(stream);
-                        //    using (fileDto.FileStream)
-                        //    {
-                        //        await fileDto.FileStream.CopyToAsync(response.OutputStream);
-                        //    }
-                        //}
+                            response.Headers.Add("Content-Disposition", "attachment;filename=" + fileDto.FileName);
+                            //response.OutputStream.(stream);
+                            using (fileDto.FileStream)
+                            {
+                                await fileDto.FileStream.CopyToAsync(response.OutputStream);
+                            }
+                        }
                         else if (method.GetCustomAttribute<FileUploadAttribute>() != null)
                         {
                             //文件上传
@@ -251,7 +252,7 @@ namespace NetTaskServer.HttpServer
                             if (request.HttpMethod.ToUpper() == "POST")
                             {
                                 var file = SaveFile(request.ContentEncoding, request.ContentType, request.InputStream);
-                                parameters.Add(file);
+                                parameters.Insert(0, file);
                                 jsonObj = method.Invoke(ControllerInstance, parameters.ToArray());
                                 await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
                             }

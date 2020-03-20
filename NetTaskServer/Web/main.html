@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.5">
-    <title>NetTask管理系统</title>
+    <title>NetTask - 远程任务管理系统</title>
     <!-- Bootstrap core CSS -->
     <link href="bootstrap.min.css" rel="stylesheet">
     <link href="datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
@@ -57,12 +57,14 @@
         </div>
 
         <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
-        <div style="text-align: right;width: 100%;">欢迎你，<span id="user_name"></span>  </div>  
+        <div style="display: flex;align-items:center;">
+            欢迎你，<span id="user_name"></span>  
         <ul class="navbar-nav px-3">    
             <li class="nav-item text-nowrap">             
                 <a class="nav-link" href="javascript:signOut();"><span data-feather="log-out"></span>退出登录</a>
             </li>
         </ul>
+    </div>  
         <button class="navbar-toggler d-block d-md-none" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="开启导航">
             <span class="navbar-toggler-icon"></span>
         </button>

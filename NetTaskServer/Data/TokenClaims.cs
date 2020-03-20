@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NetTaskServer.HttpServer
+namespace NetTaskServer.Data
 {
     public class TokenClaims
     {

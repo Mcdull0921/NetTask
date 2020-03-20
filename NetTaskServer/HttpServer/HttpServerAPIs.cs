@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
+using NetTaskServer.Data;
 
 namespace NetTaskServer.HttpServer
 {
@@ -16,6 +17,7 @@ namespace NetTaskServer.HttpServer
     {
         public const string SUPER_VARIABLE_INDEX_ID = "$index_id$";
         private const string MAIN_MODULE = "NetTaskManager.TaskManager";
+        private const string INTERFACE_DLL = "NetTaskInterface.dll";
 
         private TaskManager ServerContext;
         private IDbOperator Dbop;
@@ -45,13 +47,13 @@ namespace NetTaskServer.HttpServer
             dynamic user = Dbop.Get(username)?.ToDynamic();
             if (user == null)
             {
-                return "Error: User not exist.Please <a href='javascript:history.go(-1)'>go backward</a>.";
+                return "错误: 用户不存在。请点击<a href='javascript:history.go(-1)'>此处</a>返回。";
             }
 
 
             if (user.userPwd != EncryptHelper.SHA256(userpwd))
             {
-                return "Error: Wrong password.Please <a href='javascript:history.go(-1)'>go backward</a>.";
+                return "错误: 密码不正确。请点击<a href='javascript:history.go(-1)'>此处</a>返回。";
             }
             ServerContext.logger.Info($"用户{username}登录成功，IP：{ip}");
             //2.给token
@@ -517,6 +519,25 @@ window.location.href='main.html';
         {
             public string name { get; set; }
             public int level { get; set; }
+        }
+        #endregion
+
+        #region 帮助
+        /// <summary>
+        /// 返回一个未关闭的stream
+        /// </summary>
+        /// <param name="filekey"></param>
+        /// <returns></returns>
+        [Secure]
+        [FileAPI]
+        public FileDTO DownloadInterfaceDll()
+        {
+            FileInfo f = new FileInfo(INTERFACE_DLL);
+            return new FileDTO()
+            {
+                FileName = f.Name,
+                FileStream = new FileStream(f.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
+            };
         }
         #endregion
     }

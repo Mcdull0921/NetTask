@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="main.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="main.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.6.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NetTaskInterface">
+      <HintPath>C:\Users\Mcdull\Desktop\NetTaskInterface.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
