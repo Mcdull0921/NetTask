@@ -19,6 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NetTaskInterface\NetTaskInterface.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="NetTaskInterface">
       <HintPath>C:\Users\Mcdull\Desktop\NetTaskInterface.dll</HintPath>
     </Reference>

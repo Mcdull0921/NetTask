@@ -19,7 +19,7 @@ namespace NetTaskServer.HttpServer
 
 
         private const string INDEX_PAGE = "/main.html";
-        private const string BASE_FILE_PATH = @"E:\Github\NetTask\NetTaskServer\Web"; // "./Web/";
+        private const string BASE_FILE_PATH = "./Web/";
         private const string FILE_UPLOAD_PATH = "./temp";
 
         public Dictionary<string, MemoryStream> FilesCache = new Dictionary<string, MemoryStream>(20);
@@ -127,20 +127,18 @@ namespace NetTaskServer.HttpServer
                     //TODO 权限控制（只是控制html权限而已）
 
                     //读文件优先去缓存读
-
-                    //调试模式禁用缓存
-                    //if (FilesCache.TryGetValue(unit.TrimStart('/'), out MemoryStream memoryStream))
-                    //{
-                    //    memoryStream.Position = 0;
-                    //    await memoryStream.CopyToAsync(response.OutputStream);
-                    //}
-                    //else
-                    //{
-                    using (FileStream fs = new FileStream(BASE_FILE_PATH + unit, FileMode.Open))
+                    if (FilesCache.TryGetValue(unit.TrimStart('/'), out MemoryStream memoryStream))
                     {
-                        await fs.CopyToAsync(response.OutputStream);
+                        memoryStream.Position = 0;
+                        await memoryStream.CopyToAsync(response.OutputStream);
                     }
-                    //}
+                    else
+                    {
+                        using (FileStream fs = new FileStream(BASE_FILE_PATH + unit, FileMode.Open))
+                        {
+                            await fs.CopyToAsync(response.OutputStream);
+                        }
+                    }
                 }
                 else  //url中没有小数点则是接口
                 {

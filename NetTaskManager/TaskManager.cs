@@ -36,6 +36,10 @@ namespace NetTaskManager
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             queue = new Dictionary<Guid, TaskProcess>();
+            if (!Directory.Exists(AssemblyPath))
+            {
+                Directory.CreateDirectory(AssemblyPath);
+            }
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

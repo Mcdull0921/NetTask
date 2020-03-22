@@ -22,6 +22,7 @@
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.min.css" />
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.min.js" />
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.zh-CN.js" />
+    <None Remove="Web\DemoTask.rar" />
     <None Remove="Web\favicon.ico" />
     <None Remove="Web\favicon.ico.bak" />
     <None Remove="Web\feather.min.js" />
@@ -29,6 +30,7 @@
     <None Remove="Web\fonts\glyphicons-halflings-regular.svg" />
     <None Remove="Web\fonts\glyphicons-halflings-regular.ttf" />
     <None Remove="Web\fonts\glyphicons-halflings-regular.woff" />
+    <None Remove="Web\help.html" />
     <None Remove="Web\jquery-slim.min.js" />
     <None Remove="Web\loading-s.gif" />
     <None Remove="Web\login.html" />
@@ -86,6 +88,9 @@
     <Content Include="Web\datetimepicker\bootstrap-datetimepicker.zh-CN.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Web\DemoTask.rar">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Web\favicon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -105,6 +110,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web\fonts\glyphicons-halflings-regular.woff">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Web\help.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web\jquery-slim.min.js">
@@ -155,6 +163,7 @@
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="NLog" Version="4.6.8" />
+    <PackageReference Include="PeterKottas.DotNetCore.WindowsService" Version="2.0.11" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
   </ItemGroup>
 
