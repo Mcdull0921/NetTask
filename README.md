@@ -34,7 +34,9 @@ dotnet NetTaskServer.dll 8888
 ### 注册为Windows服务
 
 只需在运行命令后面跟上`action:install`，即可注册成为Windows服务
+
 如需卸载，和安装服务一样，把命令改成`action:uninstall`
+
 完整命令：
 
 ```bash
@@ -45,6 +47,7 @@ dotnet NetTaskServer.dll 8888 action:uninstall   #卸载
 ## 使用说明
 
 启动程序后，在浏览器输入服务器IP以及设定的或者默认端口号访问系统，比如：http://127.0.0.1:12315
+
 进入系统需要登录，系统首次启动默认会生成一个账号名和密码都为admin的超级管理员账号，进入系统后可在用户管理中重置密码，或者创建新账号。
 
 ### 角色
@@ -58,10 +61,14 @@ dotnet NetTaskServer.dll 8888 action:uninstall   #卸载
 ### 任务
 
 任务需自行在本地编写，新建一个.net core类库项目，让项目引用**NetTaskInterface**，一个dll可以包含多个任务，任意类只要继承`NetTaskInterface.ITask`即被识别为一个任务。
+
 将任务程序编译后，打包成zip文件，超级管理员可在程序集模块，点击上传程序集，选择该zip文件将任务添加进系统。
 更多介绍，可在启动NetTask后进入系统在**帮助**页面查看。
+
 任务只编写运行一次的逻辑，将任务添加进系统后，可在系统中设置任务的运行频率。
+
 任务也可有配置文件，如果后续配置文件有更改，也无需重新上传任务，可直接在系统中修改。
+
 一个简单的任务代码示例：
 
 ```C#
@@ -76,5 +83,6 @@ public class Class1 : ITask
         Console.WriteLine(configuration.GetIntValue("b"));
     }
 }
+```
 
-### 演示
+![demo](https://github.com/Mcdull0921/NetTask/blob/master/demo.gif)
