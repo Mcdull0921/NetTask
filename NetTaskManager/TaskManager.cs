@@ -50,7 +50,9 @@ namespace NetTaskManager
                 if (!File.Exists(dllPath))
                     throw new FileNotFoundException("未能找到依赖项" + args.Name);
                 byte[] assemblyInfo = File.ReadAllBytes(dllPath);
-                return Assembly.Load(assemblyInfo);
+                var assembly = Assembly.Load(assemblyInfo);
+                assemblies.Add(assembly, assemblies[args.RequestingAssembly]);
+                return assembly;
             }
             return null;
         }
