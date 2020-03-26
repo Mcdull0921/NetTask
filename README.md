@@ -41,7 +41,7 @@ dotnet NetTaskServer.dll 8888
 
 ```bash
 dotnet NetTaskServer.dll 8888 action:install     #安装
-dotnet NetTaskServer.dll 8888 action:uninstall   #卸载
+dotnet NetTaskServer.dll action:uninstall        #卸载
 ```
 
 ## 使用说明
@@ -86,3 +86,13 @@ public class Class1 : ITask
 ```
 
 ![demo](https://github.com/Mcdull0921/NetTask/blob/master/demo.gif)
+
+#### 任务的依赖项
+
+如在输出目录没有找到依赖项，可编辑项目csproj文件，添加如下代码，可将所有依赖项生成到输出目录：
+
+```xml
+<PropertyGroup>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+</PropertyGroup>
+```
