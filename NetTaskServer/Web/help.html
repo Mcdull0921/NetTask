@@ -4,7 +4,7 @@
 
     <div class="mb-2" >
         <h4>1. 编写任务</h4>
-            <p>新建一个.net core类库项目，让项目引用<a href="javascript:window.open('/DownloadInterfaceDll');">NetTaskInterface.dll</a>，一个dll可以包含多个任务，任意类只要继承<strong>NetTaskInterface.ITask</strong>即被识别为一个任务。
+            <p>新建一个.net core类库项目，让项目引用<a href="javascript:window.open('/DownloadFile?dllName=NetTaskInterface.dll');">NetTaskInterface.dll</a>和<a href="javascript:window.open('/DownloadFile?dllName=NLog.dll');">NLog.dll</a>，一个dll可以包含多个任务，任意类只要继承<strong>NetTaskInterface.ITask</strong>即被识别为一个任务。
                 <br>该类需实现2个抽象方法<em>name</em>和<em>process</em>，<em>name</em>是任务用于显示的友好名称，<em>process</em>是任务运行一次的逻辑。<br>
                 实现该抽象类，默认会获得<em>logger</em>和<em>configuration</em> 2个对象：
                 <em>logger</em>用于日志输出，<em>configuration</em>用于读取配置文件，代码示例：</p>               
@@ -25,7 +25,7 @@ public class Class1 : ITask
         </div>
 
         <h4>2. 日志</h4>
-        <P>日志采用NLOG模块，使用logger的输出会展现在管理界面中。</P>
+        <P>日志采用NLog模块，使用logger的输出会展现在管理界面中。</P>
 
 
         <h4>3. 配置文件</h4>

@@ -530,14 +530,16 @@ window.location.href='main.html';
         /// <returns></returns>
         [Secure]
         [FileAPI]
-        public FileDTO DownloadInterfaceDll()
+        public FileDTO DownloadFile(string dllName)
         {
-            FileInfo f = new FileInfo(INTERFACE_DLL);
-            return new FileDTO()
-            {
-                FileName = f.Name,
-                FileStream = new FileStream(f.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
-            };
+            FileInfo f = new FileInfo(dllName);
+            if (f.Exists)
+                return new FileDTO()
+                {
+                    FileName = f.Name,
+                    FileStream = new FileStream(f.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite)
+                };
+            throw new FileNotFoundException();
         }
         #endregion
     }
