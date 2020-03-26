@@ -19,7 +19,7 @@ NetTask是一款基于.net core2.2开发的的通用任务管理系统，将任�
 
 ### 直接运行
 
-下载[nettask_netcore_v100.zip](https://github.com/Mcdull0921/NetTask/files/4365481/nettask_netcore_v100.zip)，解压后将文件拷贝到服务器上，执行命令：
+下载[nettask_netcore_v101.zip](https://github.com/Mcdull0921/NetTask/releases/download/v1.0.1/nettask_netcore_v101.zip)，解压后将文件拷贝到服务器上，执行命令：
 
 ```bash
 dotnet NetTaskServer.dll
