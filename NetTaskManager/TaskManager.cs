@@ -19,14 +19,14 @@ namespace NetTaskManager
 
         private static TaskManager singleton = new TaskManager();
         private readonly object lockObject = new object();    //操作queue的地方都要锁住保证线程同步
-        public readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        public readonly Logger logger;
         public static TaskManager Create()
         {
             return singleton;
         }
 
         Dictionary<Guid, TaskAgent> tasks = new Dictionary<Guid, TaskAgent>();
-        Dictionary<Assembly, string> assemblies = new Dictionary<Assembly, string>();
+        Dictionary<Guid, System.Runtime.Loader.AssemblyLoadContext> assemblies = new Dictionary<Guid, System.Runtime.Loader.AssemblyLoadContext>();
         Dictionary<Guid, TaskProcess> queue;
         Task thread;
         CancellationTokenSource cts;
@@ -34,28 +34,29 @@ namespace NetTaskManager
 
         private TaskManager()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            //AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             queue = new Dictionary<Guid, TaskProcess>();
             if (!Directory.Exists(AssemblyPath))
             {
                 Directory.CreateDirectory(AssemblyPath);
             }
+            logger = new Logger(GetType().FullName, "main");
         }
 
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            if (assemblies.ContainsKey(args.RequestingAssembly))
-            {
-                string dllPath = Path.Join(AssemblyPath, assemblies[args.RequestingAssembly], args.Name.Remove(args.Name.IndexOf(',')) + ".dll");
-                if (!File.Exists(dllPath))
-                    throw new FileNotFoundException("未能找到依赖项" + args.Name);
-                byte[] assemblyInfo = File.ReadAllBytes(dllPath);
-                var assembly = Assembly.Load(assemblyInfo);
-                assemblies.Add(assembly, assemblies[args.RequestingAssembly]);
-                return assembly;
-            }
-            return null;
-        }
+        //private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        //{
+        //    if (assemblies.ContainsKey(args.RequestingAssembly))
+        //    {
+        //        string dllPath = Path.Combine(AssemblyPath, assemblies[args.RequestingAssembly], args.Name.Remove(args.Name.IndexOf(',')) + ".dll");
+        //        if (!File.Exists(dllPath))
+        //            throw new FileNotFoundException("未能找到依赖项" + args.Name);
+        //        byte[] assemblyInfo = File.ReadAllBytes(dllPath);
+        //        var assembly = Assembly.Load(assemblyInfo);
+        //        assemblies.Add(assembly, assemblies[args.RequestingAssembly]);
+        //        return assembly;
+        //    }
+        //    return null;
+        //}
 
         void CheckQueue()
         {
@@ -139,13 +140,13 @@ namespace NetTaskManager
         {
             get
             {
-                return Path.Join(new FileInfo(Assembly.GetEntryAssembly().Location).Directory.FullName, "Assembly");
+                return Path.Combine(new FileInfo(Assembly.GetEntryAssembly().Location).Directory.FullName, "Assembly");
             }
         }
 
         private Dictionary<string, TaskRunParam> LoadTaskRunParam(Guid assemblyId)
         {
-            var path = Path.Join(AssemblyPath, assemblyId.ToString() + ".json");
+            var path = Path.Combine(AssemblyPath, assemblyId.ToString() + ".json");
             if (!File.Exists(path))
                 return null;
             var res = new Dictionary<string, TaskRunParam>();
@@ -162,7 +163,7 @@ namespace NetTaskManager
 
         private void SaveTaskRunParam(Guid assemblyId, IEnumerable<TaskRunParam> configs)
         {
-            var path = Path.Join(AssemblyPath, assemblyId.ToString() + ".json");
+            var path = Path.Combine(AssemblyPath, assemblyId.ToString() + ".json");
             var content = JsonConvert.SerializeObject(configs);
             using (StreamWriter sw = new StreamWriter(path, false, Encoding.UTF8))
             {
@@ -170,19 +171,44 @@ namespace NetTaskManager
             }
         }
 
+
+
+        private Assembly LoadDll(Guid assemblyId, string dllPath)
+        {
+            var context = new CollectibleAssemblyLoadContext(assemblyId);
+            context.Resolving += Context_Resolving;
+            assemblies.Add(assemblyId, context);
+            using (var fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read))
+            {
+                return context.LoadFromStream(fs);
+            }
+        }
+
+        private Assembly Context_Resolving(System.Runtime.Loader.AssemblyLoadContext obj, AssemblyName assembly)
+        {
+            var content = obj as CollectibleAssemblyLoadContext;
+            if (content != null)
+            {
+                string dllPath = Path.Combine(AssemblyPath, content.id.ToString(), assembly.Name + ".dll");
+                if (!File.Exists(dllPath))
+                    throw new FileNotFoundException("未能找到依赖项" + assembly.Name);
+                using var fs = new FileStream(dllPath, FileMode.Open, FileAccess.Read);
+                return content.LoadFromStream(fs);
+            }
+            return null;
+        }
+
         public void LoadAssembly(Guid assemblyId)
         {
-            var rootDir = Path.Join(AssemblyPath, assemblyId.ToString());
-            string xmlPath = Path.Join(rootDir, "main.xml");
+            var rootDir = Path.Combine(AssemblyPath, assemblyId.ToString());
+            string xmlPath = Path.Combine(rootDir, "main.xml");
             if (!File.Exists(xmlPath))
                 throw new FileNotFoundException("入口文件main.xml未找到！");
             var configuration = new Configuration(xmlPath);
-            var dllPath = Path.Join(rootDir, configuration.EntryPoint);
+            var dllPath = Path.Combine(rootDir, configuration.EntryPoint);
             if (!File.Exists(dllPath))
                 throw new FileNotFoundException(string.Format("程序集{0}文件未找到！", configuration.EntryPoint));
-            byte[] assemblyInfo = File.ReadAllBytes(dllPath);
-            var assembly = Assembly.Load(assemblyInfo);
-            assemblies.Add(assembly, assemblyId.ToString());
+            var assembly = LoadDll(assemblyId, dllPath);
             var configs = LoadTaskRunParam(assemblyId);
             bool saveConfig = configs == null;
             List<TaskRunParam> saveConfigs = new List<TaskRunParam>();
@@ -240,12 +266,17 @@ namespace NetTaskManager
             {
                 tasks.Remove(id);
             }
-            var assemblyPath = Path.Join(AssemblyPath, assemblyId.ToString());
+            var assemblyPath = Path.Combine(AssemblyPath, assemblyId.ToString());
             if (Directory.Exists(assemblyPath))
                 Directory.Delete(assemblyPath, true);
             assemblyPath += ".json";
             if (File.Exists(assemblyPath))
                 File.Delete(assemblyPath);
+            var content = assemblies[assemblyId];
+            content.Unload();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            assemblies.Remove(assemblyId);
         }
 
         private bool Start()

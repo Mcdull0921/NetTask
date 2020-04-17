@@ -1,14 +1,16 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h3">任务的创建</h1>
-    </div>
+    <h1 class="h3">任务的创建</h1>
+</div>
 
-    <div class="mb-2" >
-        <h4>1. 编写任务</h4>
-            <p>新建一个.net core类库项目，让项目引用<a href="javascript:window.open('/DownloadFile?dllName=NetTaskInterface.dll');">NetTaskInterface.dll</a>和<a href="javascript:window.open('/DownloadFile?dllName=NLog.dll');">NLog.dll</a>，一个dll可以包含多个任务，任意类只要继承<strong>NetTaskInterface.ITask</strong>即被识别为一个任务。
-                <br>该类需实现2个抽象方法<em>name</em>和<em>process</em>，<em>name</em>是任务用于显示的友好名称，<em>process</em>是任务运行一次的逻辑。<br>
-                实现该抽象类，默认会获得<em>logger</em>和<em>configuration</em> 2个对象：
-                <em>logger</em>用于日志输出，<em>configuration</em>用于读取配置文件，代码示例：</p>               
-<pre style="margin-top: -30px;" ><code>    
+<div class="mb-2">
+    <h4>1. 编写任务</h4>
+    <p>
+        新建一个.net core类库项目，让项目引用<a href="javascript:window.open('/DownloadInterface');">NetTaskInterface.dll</a>，一个dll可以包含多个任务，任意类只要继承<strong>NetTaskInterface.ITask</strong>即被识别为一个任务。
+        <br>该类需实现2个抽象方法<em>name</em>和<em>process</em>，<em>name</em>是任务用于显示的友好名称，<em>process</em>是任务运行一次的逻辑。<br>
+        实现该抽象类，默认会获得<em>logger</em>和<em>configuration</em> 2个对象：
+        <em>logger</em>用于日志输出，<em>configuration</em>用于读取配置文件，代码示例：
+    </p>
+<pre style="margin-top: -30px;"><code>    
 public class Class1 : ITask
 {
     public override string name =&gt; &quot;Test1&quot;;
@@ -21,15 +23,16 @@ public class Class1 : ITask
     }
 }
 </code></pre>
-                
-        </div>
 
-        <h4>2. 日志</h4>
-        <P>日志采用NLog模块，使用logger的输出会展现在管理界面中。</P>
+</div>
+
+<h4>2. 日志</h4>
+<P>使用logger的输出会展现在管理界面中，日志包含<em>Info</em>和<em>Error</em> 2个方法，<em>Info</em>用来记录普通的信息，<em>Error</em>接收Exception类型用以记录异常信息。<br />
+任何未捕获或未处理的异常将导致该任务停止运行，无论该任务是否循环。</P>
 
 
-        <h4>3. 配置文件</h4>
-        <p>配置文件必须以<strong>main.xml</strong>命名并且和dll放置在同一目录，无论是否需要读取配置文件，都需在本地创建<strong>main.xml</strong>，在打包程序集时需要包含此文件，配置文件示例：</p>
+<h4>3. 配置文件</h4>
+<p>配置文件必须以<strong>main.xml</strong>命名并且和dll放置在同一目录，无论是否需要读取配置文件，都需在本地创建<strong>main.xml</strong>，在打包程序集时需要包含此文件，配置文件示例：</p>
 
 <pre style="margin-top: -30px;"><code>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
@@ -39,40 +42,49 @@ public class Class1 : ITask
 &lt;/task&gt;
 </code></pre>
 <p>其中<em>entrypoint</em>指定了任务所在的dll，任务管理器将会在此dll中查找任务。可以不限制添加任意数量的键值对，通过<em>configuration</em>对象来获取值。</p>
-      
+
 
 <h4>4. 打包</h4>
-<p>将类库编译生成好后，连同所有的依赖项dll(不需包括<strong>NetTaskInterface.dll</strong>及<strong>NLog.dll</strong>)和配置文件<strong>main.xml</strong>一同打包成zip文件。在程序集模块中点击上传程序集将任务添加进系统。
-<br>
-演示任务下载：<a href="javascript:window.open('/DemoTask.rar');">DemoTask.rar</a>
+<p>
+    将类库编译生成好后，连同所有的依赖项dll(不需包括<strong>NetTaskInterface.dll</strong>)和配置文件<strong>main.xml</strong>一同打包成zip文件。在程序集模块中点击上传程序集将任务添加进系统。
+    <br>
+    zip包中必须包含所有的依赖dll文件，可编辑项目csproj文件，添加如下代码，将所有依赖项生成到输出目录。
+    <pre style="margin-top: -30px;"><code>
+&lt;PropertyGroup&gt;
+    &lt;CopyLocalLockFileAssemblies&gt;true&lt;/CopyLocalLockFileAssemblies&gt;
+&lt;/PropertyGroup&gt;
+</code></pre>
+    演示任务下载：<a href="javascript:window.open('/DemoTask.rar');">DemoTask.rar</a>
 </p>
 
 <br>
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h3">任务运行参数说明</h1>
-            </div>
-        
-            <div class="mb-2" >
-                    <h4>1. 非循环任务</h4>
-                    <p>非循环任务只执行一次，如果勾选了启动时立即执行，则任务开始时立即执行，或者设置了开始时间，则任务开始时会处于等待状态，直到到达开始时间才会执行。</p>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h3">任务运行参数说明</h1>
+</div>
 
-                    <h4>2. 循环任务</h4>
-                    <p>可设置五种循环：<strong>秒</strong>、<strong>分钟</strong>、<strong>小时</strong>、<strong>天</strong>、<strong>月</strong>，间隔值依据循环类型确定时间跨度，比如设置为5，循环类型选择的<strong>秒</strong>，则代表5秒一循环。
-                    <br>
-                    勾选启动时立即执行，则任务开始时立即开始循环。
-                </p>
+<div class="mb-2">
+    <h4>1. 非循环任务</h4>
+    <p>非循环任务只执行一次，如果勾选了启动时立即执行，则任务开始时立即执行，或者设置了开始时间，则任务开始时会处于等待状态，直到到达开始时间才会执行。</p>
 
-                    <h4>3. 定时循环任务</h4>
-                    <p>给循环任务设置开始时间，则任务以开始时间作为循环的起始点，任务启动时如果当前时间超过设定时间，则会根据间隔自动累加到下一次执行的时间点，否则就一直等待到设定时间。
-                       <br>比如要让任务在每天早上7时执行，可以设置成天循环，间隔设置为1，开始时间的时间部分设置为7时，日期部分设置为任意小于当天的日期，启动任务时，如果当天没到7点则等到7点执行，过了7点则第二天7点才会执行。
-                  </p>
-                </div>
+    <h4>2. 循环任务</h4>
+    <p>
+        可设置五种循环：<strong>秒</strong>、<strong>分钟</strong>、<strong>小时</strong>、<strong>天</strong>、<strong>月</strong>，间隔值依据循环类型确定时间跨度，比如设置为5，循环类型选择的<strong>秒</strong>，则代表5秒一循环。
+        <br>
+        勾选启动时立即执行，则任务开始时立即开始循环。
+    </p>
+
+    <h4>3. 定时循环任务</h4>
+    <p>
+        给循环任务设置开始时间，则任务以开始时间作为循环的起始点，任务启动时如果当前时间超过设定时间，则会根据间隔自动累加到下一次执行的时间点，否则就一直等待到设定时间。
+        <br>比如要让任务在每天早上7时执行，可以设置成天循环，间隔设置为1，开始时间的时间部分设置为7时，日期部分设置为任意小于当天的日期，启动任务时，如果当天没到7点则等到7点执行，过了7点则第二天7点才会执行。
+    </p>
+</div>
 <br>
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h3">任务配置</h1>
-                    </div>
-                
-                    <div class="mb-2" >
-                            任务在停止状态下，可通过点击<em>修改任务配置</em>来调整<strong>main.xml</strong>中已设定好的值。任务再次运行时，读取的将是设置后的新值。
-                        </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h3">任务配置</h1>
+</div>
+
+<div class="mb-2">
+    任务在停止状态下，可通过点击<em>修改任务配置</em>来调整<strong>main.xml</strong>中已设定好的值。任务再次运行时，读取的将是设置后的新值。
+</div>
 <br>

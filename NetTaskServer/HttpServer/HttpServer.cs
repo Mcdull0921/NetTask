@@ -1,6 +1,6 @@
-﻿using NetTaskServer.Common;
+﻿using NetTaskManager;
+using NetTaskServer.Common;
 using NetTaskServer.Data;
-using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -72,8 +72,8 @@ namespace NetTaskServer.HttpServer
             }
             catch (Exception ex)
             {
-                Logger.Debug(ex);
-                Logger.Error(ex, ex.ToString());
+                Logger.Debug(ex.Message);
+                Logger.Error(ex.ToString(), ex);
             }
             Logger.Debug("Http服务结束。");
         }
@@ -263,7 +263,7 @@ namespace NetTaskServer.HttpServer
                     catch (Exception ex)
                     {
                         if ((ex is TargetInvocationException) && ex.InnerException != null) ex = ex.InnerException;
-                        Logger.Error(ex, ex.Message);
+                        Logger.Error(ex.Message, ex);
                         jsonObj = new Exception(ex.Message);// + "---" + ex.StackTrace
                         response.ContentType = "application/json";
                         await response.OutputStream.WriteAsync(HtmlUtil.GetContent(jsonObj.Wrap().ToJsonString()));
@@ -277,7 +277,7 @@ namespace NetTaskServer.HttpServer
             }
             catch (Exception e)
             {
-                Logger.Error(e, e.Message);
+                Logger.Error(e.Message, e);
                 throw;
             }
             finally
@@ -324,7 +324,7 @@ namespace NetTaskServer.HttpServer
             {
                 dir.Create();
             }
-            FileInfo res = new FileInfo(Path.Join(FILE_UPLOAD_PATH, fileName));
+            FileInfo res = new FileInfo(Path.Combine(FILE_UPLOAD_PATH, fileName));
             using (FileStream output = new FileStream(res.FullName, FileMode.Create, FileAccess.Write))
             {
                 Byte[] buffer = new Byte[1024];

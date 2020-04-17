@@ -1,31 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.0</TargetFramework>
+	</PropertyGroup>
+	<PropertyGroup>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="main.xml" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="main.xml" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="main.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="main.xml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NLog" Version="4.6.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NetTaskInterface\NetTaskInterface.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="NetTaskInterface">
-      <HintPath>C:\Users\Mcdull\Desktop\NetTaskInterface.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\NetTaskInterface\NetTaskInterface.csproj" />
+	</ItemGroup>
 
 </Project>

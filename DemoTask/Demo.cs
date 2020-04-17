@@ -1,5 +1,4 @@
 ﻿using NetTaskInterface;
-using System;
 
 namespace DemoTask
 {

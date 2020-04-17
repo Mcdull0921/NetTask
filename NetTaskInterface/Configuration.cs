@@ -14,7 +14,7 @@ namespace NetTaskInterface
 
         public string EntryPoint { get; private set; }
 
-        public Configuration() : this(System.IO.Path.Join(new System.IO.FileInfo(System.Reflection.Assembly.GetEntryAssembly().Location).Directory.FullName, "main.xml"))
+        public Configuration() : this(System.IO.Path.Combine(new System.IO.FileInfo(System.Reflection.Assembly.GetEntryAssembly().Location).Directory.FullName, "main.xml"))
         {
 
         }

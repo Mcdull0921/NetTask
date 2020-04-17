@@ -8,8 +8,11 @@ namespace NetTaskManager
 {
     class CollectibleAssemblyLoadContext : AssemblyLoadContext
     {
-        public CollectibleAssemblyLoadContext()
-        { }
+        public Guid id { get; private set; }
+        public CollectibleAssemblyLoadContext(Guid id) : base(isCollectible: true)
+        {
+            this.id = id;
+        }
 
         protected override Assembly Load(AssemblyName assemblyName)
         {

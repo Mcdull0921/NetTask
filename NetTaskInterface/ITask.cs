@@ -9,12 +9,12 @@ namespace NetTaskInterface
 
         public Configuration configuration { get; set; }
 
-        public NLog.Logger logger { get; private set; }
+        public Logger logger { get; private set; }
 
         public ITask()
         {
             configuration = new Configuration();
-            logger = NLog.LogManager.GetLogger(GetType().FullName);
+            logger = new Logger();
         }
     }
 }

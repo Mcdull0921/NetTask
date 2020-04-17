@@ -1,7 +1,5 @@
 ﻿using NetTaskInterface;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NetTaskManager
 {
@@ -16,6 +14,9 @@ namespace NetTaskManager
         internal TaskAgent(ITask task, Guid assemblyId, TaskRunParam taskConfig)
         {
             this.task = task;
+            Logger logger = new Logger(task.GetType().FullName, assemblyId.ToString());
+            task.logger.onInfo += logger.Info;
+            task.logger.onError += logger.Error;
             taskStatus = TaskStatus.Stop;
             id = Guid.NewGuid();
             this.assemblyId = assemblyId;

@@ -271,7 +271,6 @@ window.location.href='main.html';
         [Secure(2)]
         public IEnumerable<string> GetAssemblies()
         {
-
             var res = new List<string>();
             Dictionary<string, List<string>> dic = new Dictionary<string, List<string>>();
             foreach (var task in ServerContext.Tasks)
@@ -285,7 +284,7 @@ window.location.href='main.html';
             }
             foreach (var aid in dic.Keys)
             {
-                var dir = new DirectoryInfo(Path.Join(ServerContext.AssemblyPath, aid));
+                var dir = new DirectoryInfo(Path.Combine(ServerContext.AssemblyPath, aid));
                 res.Add(new
                 {
                     id = aid,
@@ -314,11 +313,13 @@ window.location.href='main.html';
         public void UploadAssembly(FileInfo fileInfo, LoginInfo info)
         {
             var assemblyId = Guid.NewGuid();
-            var rootDir = Path.Join(ServerContext.AssemblyPath, assemblyId.ToString());
-            Directory.CreateDirectory(rootDir);
+            var rootDir = Path.Combine(ServerContext.AssemblyPath, assemblyId.ToString());
+            var tempDir = Path.Combine(rootDir, "temp");
+            Directory.CreateDirectory(tempDir);
             try
             {
-                UnZip(fileInfo.FullName, rootDir, null);
+                UnZip(fileInfo.FullName, tempDir, null);
+                HandleFiles(rootDir);
                 System.Threading.Thread.Sleep(500);
                 ServerContext.LoadAssembly(assemblyId);
                 ServerContext.logger.Info($"{info.username}添加了程序集{assemblyId.ToString()}");
@@ -332,6 +333,32 @@ window.location.href='main.html';
             {
                 File.Delete(fileInfo.FullName);
             }
+        }
+
+        private void HandleFiles(string rootDir)
+        {
+            var tempDir = Path.Combine(rootDir, "temp");
+            var queue = new Queue<string>();
+            queue.Enqueue(tempDir);
+            while (queue.Count > 0)
+            {
+                var path = queue.Dequeue();
+                var files = Directory.GetFiles(path);
+                if (files.Count(p => p.EndsWith("main.xml")) > 0)
+                {
+                    foreach (var file in files)
+                    {
+
+                        File.Copy(file, Path.Combine(rootDir, new FileInfo(file).Name), true);
+                    }
+                    break;
+                }
+                foreach (var dir in Directory.GetDirectories(path))
+                {
+                    queue.Enqueue(dir);
+                }
+            }
+            Directory.Delete(tempDir, true);
         }
 
         /// <summary>   
@@ -417,8 +444,8 @@ window.location.href='main.html';
         private IEnumerable<DirectoryInfo> GetLogDirectories()
         {
             var res = new List<DirectoryInfo>();
-            res.Add(new DirectoryInfo(Path.Join(baseLogFilePath, MAIN_MODULE)));
-            res.AddRange(ServerContext.Tasks.Select(p => new DirectoryInfo(Path.Join(baseLogFilePath, p.TypeName))));
+            res.Add(new DirectoryInfo(Path.Combine(baseLogFilePath, ServerContext.logger.assembly, MAIN_MODULE)));
+            res.AddRange(ServerContext.Tasks.Select(p => new DirectoryInfo(Path.Combine(baseLogFilePath, p.AssemblyId.ToString(), p.TypeName))));
             return res.Where(p => p.Exists);
         }
 
@@ -426,7 +453,7 @@ window.location.href='main.html';
         [API]
         public IEnumerable<string> GetLogNames()
         {
-            return GetLogDirectories().Select(p => p.Name);
+            return GetLogDirectories().Select(p => $"{p.Parent.Name}${p.Name}");
         }
 
 
@@ -446,13 +473,13 @@ window.location.href='main.html';
                 var logs = new List<LogInfo>();
                 foreach (var level in logLevels)
                 {
-                    var levelDir = new DirectoryInfo(Path.Join(dir.FullName, level.Item1));
+                    var levelDir = new DirectoryInfo(Path.Combine(dir.FullName, level.Item1));
                     if (levelDir.Exists)
                     {
                         logs.AddRange(levelDir.GetFiles().Select(p => new LogInfo { name = p.Name, level = level.Item2 }).ToArray());
                     }
                 }
-                res.Add(new { name = dir.Name, logs = logs.OrderByDescending(p => p.name).Take(n) }.ToJsonString());
+                res.Add(new { name = $"{dir.Parent.Name}${dir.Name}", logs = logs.OrderByDescending(p => p.name).Take(n) }.ToJsonString());
             }
             return res;
         }
@@ -462,7 +489,7 @@ window.location.href='main.html';
         public string GetLogInfo(string log)
         {
             log = log.Replace('$', '/');
-            var file = new FileInfo(Path.Join(baseLogFilePath, log));
+            var file = new FileInfo(Path.Combine(baseLogFilePath, log));
             if (file.Exists)
             {
                 using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite))
@@ -479,7 +506,7 @@ window.location.href='main.html';
         public void DeleteLog(string log)
         {
             log = log.Replace('$', '/');
-            var file = new FileInfo(Path.Join(baseLogFilePath, log));
+            var file = new FileInfo(Path.Combine(baseLogFilePath, log));
             if (file.Exists)
             {
                 File.Delete(file.FullName);
@@ -490,10 +517,11 @@ window.location.href='main.html';
 
         [Secure]
         [API]
-        public string GetLogInfoRealtime(string taskname, string lastLines)
+        public string GetLogInfoRealtime(string log, string lastLines)
         {
+            log = log.Replace('$', '/');
             int lastLinesInt = int.Parse(lastLines);
-            FileInfo[] files = new DirectoryInfo(Path.Join(baseLogFilePath, taskname, "info")).GetFiles();
+            FileInfo[] files = new DirectoryInfo(Path.Combine(baseLogFilePath, log, "info")).GetFiles();
             DateTime recentWrite = DateTime.MinValue;
             FileInfo recentFile = null;
 
@@ -530,9 +558,9 @@ window.location.href='main.html';
         /// <returns></returns>
         [Secure]
         [FileAPI]
-        public FileDTO DownloadFile(string dllName)
+        public FileDTO DownloadInterface()
         {
-            FileInfo f = new FileInfo(dllName);
+            FileInfo f = new FileInfo(INTERFACE_DLL);
             if (f.Exists)
                 return new FileDTO()
                 {
