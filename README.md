@@ -96,3 +96,5 @@ public class Class1 : ITask
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 </PropertyGroup>
 ```
+
+如果对你有帮助给我点一个Star可好，同时也欢迎大神朋友提交PR，你的鼓励就是我的最大动力。
