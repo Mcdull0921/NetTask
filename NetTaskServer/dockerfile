@@ -1,0 +1,11 @@
+﻿FROM mcr.microsoft.com/dotnet/core/runtime:3.0 AS runtime
+
+RUN mkdir /home/NetTask
+
+COPY ./publish/ /home/NetTask 
+
+WORKDIR /home/NetTask
+
+EXPOSE 12315 
+
+CMD [ "dotnet","NetTaskServer.dll" ]

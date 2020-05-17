@@ -119,6 +119,7 @@ namespace NetTaskServer.HttpServer
                     if (!File.Exists(BASE_FILE_PATH + unit))
                     {
                         Logger.Debug($"未找到文件{BASE_FILE_PATH + unit}");
+                        response.StatusCode = 404;
                         return;
 
                     }
