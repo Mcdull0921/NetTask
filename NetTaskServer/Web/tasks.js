@@ -67,6 +67,18 @@
         });
     };
 
+    var post = function (method, datas, callback) {
+        var url = method;
+        $.post(basepath + url, datas, function (res) {
+            if (res.State == 0) {
+                alert(res.Msg);
+                return;
+            }
+            if (callback)
+                callback(res.Data)
+        });
+    };
+
     this.editRunParam = function (id) {
         $("#editConfig").collapse('hide');
         ajax('GetTask', { 'id': id }, function (data) {
@@ -91,7 +103,7 @@
 
     this.saveRunParam = function () {
         var self = this;
-        ajax('EditTaskRunParam', {
+        post('EditTaskRunParam', {
             'id': $('#taskId').val(),
             'timerType': $('#timeType').val(),
             'interval': $('#interval').val(),
@@ -127,7 +139,7 @@
     };
 
     this.saveConfig = function () {
-        ajax('EditTaskConfig', {
+        post('EditTaskConfig', {
             'id': $('#taskId').val(),
             'configs': JSON.stringify($.map($('#taskConfig input'), function (i) { return { 'Key': i.name.substr(6), 'Value': $(i).val() }; })),
         }, function (data) {

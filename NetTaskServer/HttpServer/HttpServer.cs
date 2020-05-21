@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace NetTaskServer.HttpServer
 {
@@ -88,6 +89,39 @@ namespace NetTaskServer.HttpServer
             }
         }
 
+        /// <summary>
+        /// HttpListener接收post请求
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private Dictionary<string, string> PostInput(HttpListenerRequest request)
+        {
+            try
+            {
+                Stream s = request.InputStream;
+                int count = 0;
+                byte[] buffer = new byte[1024];
+                StringBuilder builder = new StringBuilder();
+                while ((count = s.Read(buffer, 0, 1024)) > 0)
+                {
+                    builder.Append(Encoding.UTF8.GetString(buffer, 0, count));
+                }
+                s.Flush();
+                s.Close();
+                s.Dispose();
+                Dictionary<string, string> res = new Dictionary<string, string>();
+                var data = builder.ToString();
+                foreach (var d in data.Split("&".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var kv = d.Split("=".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                    res.Add(kv[0], HttpUtility.UrlDecode(kv[1]));
+                }
+                return res;
+            }
+            catch (Exception ex)
+            { throw ex; }
+        }
+
         private async Task ProcessHttpRequestAsync(HttpListenerContext context)
         {
 
@@ -157,6 +191,11 @@ namespace NetTaskServer.HttpServer
                         {
                             parameters.Add(request.QueryString[i]);
                         }
+                    }
+                    var postDatas = PostInput(request); // new HttpListenerPostParaHelper(context).GetHttpListenerPostValue();
+                    foreach (var kv in postDatas)
+                    {
+                        parameters.Add(kv.Value);
                     }
 
                     //反射调用API方法
