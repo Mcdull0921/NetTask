@@ -1,5 +1,5 @@
 # NetTask
-NetTask是一款基于.net core3.0开发的的通用任务管理系统，将任务逻辑和任务调度彻底分离，并可通过Web界面远程监控和管理任务。
+NetTask是一款基于.net core3.0开发的轻量级通用任务管理系统，将任务逻辑和任务调度彻底分离，并可通过Web界面远程监控和管理任务。
 
 .Net Core 3.0可回收程序集加载上下文AssemblyLoadContext新增了Unload方法，真正实现了程序集的热插拔。
 
