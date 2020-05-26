@@ -46,6 +46,29 @@ dotnet NetTaskServer.dll 8888 action:install     #安装
 dotnet NetTaskServer.dll action:uninstall        #卸载
 ```
 
+### 部署到docker
+
+1. 发布`NetTaskServer`项目，将`publish`文件夹和项目中的`dockerfile`文件放置在同一目录，生成docker镜像：
+```bash
+docker build -t nettask:1.3.0 . #最后的.表示当前目录
+```
+2. 运行镜像：
+```bash
+docker run --name nettask -d -p 12315:12315  nettask:1.3.0
+```
+3. 由于微软的镜像源默认时区是UTC，需把时区改成UTC+8，否则任务执行时间会和系统时间不一致，设置镜像时区为系统时区：
+```bash
+docker cp /etc/localtime <container_id>:/etc/
+```
+4. 设置完后需重启容器：
+```bash
+docker restart <container_id>
+```
+5. 设置容器自动启动：
+```bash
+ docker update --restart=always <container_id>
+```
+
 ## 使用说明
 
 启动程序后，在浏览器输入服务器IP以及设定的或者默认端口号访问系统，比如：http://127.0.0.1:12315
@@ -96,13 +119,15 @@ public class Class1 : ITask
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
-<task entrypoint="TestTask1.dll">
-    <add key="a" value="你好" />
-    <add key="b" value="1" />
+<task entrypoint="DemoTask.dll">
+	<DemoTask.Demo>
+		<add key="a" value="你好" />
+		<add key="b" value="1" />
+	</DemoTask.Demo>
 </task>
 ```
 
-其中**entrypoint**指定了任务所在的dll，任务管理器将会在此dll中查找任务。可以不限制添加任意数量的键值对，通过`configuration`对象来获取值。
+其中**entrypoint**指定了任务所在的dll，任务管理器将会在此dll中查找任务。为了确保任务间的相互隔离，每个任务的配置需用包含命令空间的类全名包裹起来，这样才能在当前任务中可通过`configuration`获取到值，可以不限制添加任意数量的键值对。
 
 #### 打包
 

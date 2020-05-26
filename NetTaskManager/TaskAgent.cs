@@ -231,7 +231,7 @@ namespace NetTaskManager
             }
         }
 
-        public Configuration configuration
+        public Configuration.Config configuration
         {
             get
             {

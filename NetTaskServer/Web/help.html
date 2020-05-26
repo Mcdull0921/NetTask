@@ -37,11 +37,15 @@ public class Class1 : ITask
 <pre style="margin-top: -30px;"><code>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot; ?&gt;
 &lt;task entrypoint=&quot;TestTask1.dll&quot;&gt;
-    &lt;add key=&quot;a&quot; value=&quot;你好&quot; /&gt;
-    &lt;add key=&quot;b&quot; value=&quot;1&quot; /&gt;
+	&lt;DemoTask.Demo&gt;
+		&lt;add key=&quot;a&quot; value=&quot;你好&quot; /&gt;
+		&lt;add key=&quot;b&quot; value=&quot;1&quot; /&gt;
+	&lt;/DemoTask.Demo&gt;
 &lt;/task&gt;
 </code></pre>
-<p>其中<em>entrypoint</em>指定了任务所在的dll，任务管理器将会在此dll中查找任务。可以不限制添加任意数量的键值对，通过<em>configuration</em>对象来获取值。</p>
+
+
+<p>其中<em>entrypoint</em>指定了任务所在的dll，任务管理器将会在此dll中查找任务。为了确保任务间的相互隔离，每个任务的配置需用包含命令空间的类全名包裹起来，这样才能在当前任务中可通过<em>configuration</em>获取到值，可以不限制添加任意数量的键值对。</p>
 
 
 <h4>4. 打包</h4>
@@ -54,7 +58,7 @@ public class Class1 : ITask
     &lt;CopyLocalLockFileAssemblies&gt;true&lt;/CopyLocalLockFileAssemblies&gt;
 &lt;/PropertyGroup&gt;
 </code></pre>
-    演示任务下载：<a href="javascript:window.open('/DemoTask.rar');">DemoTask.rar</a>
+    演示任务：可参考Github官方代码示例<a href="javascript:window.open('https://github.com/Mcdull0921/NetTask/');">DemoTask</a>。
 </p>
 
 <br>

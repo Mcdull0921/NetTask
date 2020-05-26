@@ -7,13 +7,13 @@ namespace NetTaskInterface
         public abstract void process();
         public abstract string name { get; }
 
-        public Configuration configuration { get; set; }
+        public Configuration.Config configuration { get; set; }
 
         public Logger logger { get; private set; }
 
         public ITask()
         {
-            configuration = new Configuration();
+            configuration = new Configuration().GetConfig(GetType());
             logger = new Logger();
         }
     }

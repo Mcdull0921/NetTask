@@ -5,9 +5,9 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <ApplicationIcon />
     <Win32Resource />
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
-    <FileVersion>1.2.0.0</FileVersion>
-    <Version>1.2.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <FileVersion>1.3.0.0</FileVersion>
+    <Version>1.3.0</Version>
     <Authors>Mcdull0921</Authors>
     <Company />
     <Product>NetTask</Product>
@@ -31,7 +31,6 @@
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.min.css" />
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.min.js" />
     <None Remove="Web\datetimepicker\bootstrap-datetimepicker.zh-CN.js" />
-    <None Remove="Web\DemoTask.rar" />
     <None Remove="Web\favicon.ico" />
     <None Remove="Web\favicon.ico.bak" />
     <None Remove="Web\feather.min.js" />
@@ -98,9 +97,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web\datetimepicker\bootstrap-datetimepicker.zh-CN.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Web\DemoTask.rar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Web\favicon.ico">

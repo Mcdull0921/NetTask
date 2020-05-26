@@ -119,7 +119,9 @@ namespace NetTaskServer.HttpServer
                 return res;
             }
             catch (Exception ex)
-            { throw ex; }
+            {
+                return new Dictionary<string, string>();
+            }
         }
 
         private async Task ProcessHttpRequestAsync(HttpListenerContext context)
@@ -192,11 +194,6 @@ namespace NetTaskServer.HttpServer
                             parameters.Add(request.QueryString[i]);
                         }
                     }
-                    var postDatas = PostInput(request); // new HttpListenerPostParaHelper(context).GetHttpListenerPostValue();
-                    foreach (var kv in postDatas)
-                    {
-                        parameters.Add(kv.Value);
-                    }
 
                     //反射调用API方法
                     MethodInfo method = null;
@@ -207,6 +204,14 @@ namespace NetTaskServer.HttpServer
                         {
                             //Server.Logger.Debug($"无效的方法名{unit}");
                             throw new Exception($"无效的方法名{unit}");
+                        }
+                        if (request.HttpMethod.ToUpper() == "POST" && method.GetCustomAttribute<FileUploadAttribute>() == null)
+                        {
+                            var postDatas = PostInput(request);
+                            foreach (var kv in postDatas)
+                            {
+                                parameters.Add(kv.Value);
+                            }
                         }
                         LoginInfo loginInfo = null;
                         if (method.GetCustomAttribute<SecureAttribute>() != null)

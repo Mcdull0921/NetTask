@@ -223,7 +223,7 @@ namespace NetTaskManager
                 else
                     config = TaskRunParam.CreateDefaultConfig(typeName);
                 TaskAgent ta = new TaskAgent(task, assemblyId, config);
-                ta.configuration = configuration;
+                ta.configuration = configuration.GetConfig(task.GetType());
                 AddTask(ta);
                 if (saveConfig)
                     saveConfigs.Add(config);
@@ -370,20 +370,7 @@ namespace NetTaskManager
             if (configs == null)
                 return;
             var t = tasks[id];
-            XmlDocument doc = new XmlDocument();
-            var root = doc.CreateElement("task");
-            root.SetAttribute("entrypoint", t.configuration.EntryPoint);
-            foreach (var c in configs)
-            {
-                XmlElement node = doc.CreateElement("add");
-                node.SetAttribute("key", c.Key);
-                node.SetAttribute("value", c.Value);
-                root.AppendChild(node);
-            }
-            doc.AppendChild(root);
-            var path = t.configuration.Path;
-            doc.Save(path);
-            t.configuration = new Configuration(path);
+            t.configuration.Save(configs);
         }
 
         public void EditTaskRunParam(Guid id, TimerType timerType, int interval, DateTime? startTime, bool runOnStart)
