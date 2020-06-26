@@ -114,7 +114,7 @@ namespace NetTaskServer.HttpServer
                 foreach (var d in data.Split("&".ToCharArray(), StringSplitOptions.RemoveEmptyEntries))
                 {
                     var kv = d.Split("=".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                    res.Add(kv[0], HttpUtility.UrlDecode(kv[1]));
+                    res.Add(kv[0], kv.Count() > 1 ? HttpUtility.UrlDecode(kv[1]) : "");
                 }
                 return res;
             }
