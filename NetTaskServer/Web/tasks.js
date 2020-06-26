@@ -88,7 +88,7 @@
             $('#timeType').val(data.TaskTimerType);
             $('#interval').val(data.Interval);
             if (data.StartTime) {
-                $('#startTime').val(new Date(data.StartTime).format("YYYY-mm-dd HH:MM"));
+                $('#startTime').val(new Date(data.StartTime.replace(/T/g,' ').replace(/-/g,'/')+'+0800').format("YYYY-mm-dd HH:MM"));
             }
             else {
                 $('#startTime').val('');
