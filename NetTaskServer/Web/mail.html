@@ -1,0 +1,41 @@
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h3">邮件通知</h1>
+</div>
+
+<div class="form-group">
+    <div class="pretty p-switch p-fill">
+            <input type="checkbox" id="cbEnableEmail" />
+            <div class="state p-primary"><label>开启</label>
+            </div>
+        </div>
+</div>
+
+<div class="collapse" id="divEmail">
+<form class="bv-form" id="frmEmail">
+        <div class="form-group">
+                <label for="inputMailServer">Smtp服务器地址</label>
+                <input type="text" class="form-control" data-bv-field="inputMailServer" name="inputMailServer" id="inputMailServer" placeholder="请输入Smtp服务器地址，例如：smtp.qq.com">
+            </div>
+            <div class="form-group">
+                    <label for="inputMailPort">Smtp服务器端口</label>
+                    <input type="text" class="form-control" data-bv-field="inputMailPort" name="inputMailPort" id="inputMailPort" placeholder="请输入Smtp服务器端口，例如：587">
+                </div>
+    <div class="form-group">
+        <label for="inputMailUserName">邮箱账号</label>
+        <input type="text" class="form-control" data-bv-field="inputMailUserName" name="inputMailUserName" id="inputMailUserName" placeholder="请输入邮箱账号">
+    </div>
+    <div class="form-group">
+        <label for="inputMailPassword">授权码</label>
+        <input type="text" data-bv-field="inputMailPassword" name="inputMailPassword" class="form-control" id="inputMailPassword" placeholder="请输入授权码">
+    </div>
+
+    <div class="form-group">
+            <label for="inputMailContent">任务异常提醒内容</label>
+            <textarea type="text" data-bv-field="inputMailContent" name="inputMailContent" class="form-control" id="inputMailContent" placeholder="任务发生因异常停止运行时的提醒内容模板，错误内容以${error}替换" />
+        </div>
+
+</div>
+</form>
+</div>
+
+<button type="button" id="btnSaveMail" class="btn btn-primary mr-2">保存</button>

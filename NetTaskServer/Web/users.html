@@ -3,7 +3,7 @@
     <div class="btn-toolbar mb-2 mb-md-0">
         <!--<div class="btn-group mr-2">-->
         <div class="btn-group" role="group">
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addUser()"><span data-feather="user-plus"></span> 新增</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="User.addUser()"><span data-feather="user-plus"></span> 新增</button>
         </div>
         <!--</div>-->
     </div>
@@ -16,9 +16,22 @@
             <input type="text" class="form-control" data-bv-field="inputUserName" name="inputUserName" id="inputUserName" placeholder="请输入用户名">
             <!--<small id="emailHelp" class="form-text text-muted">请输入1~65535之间的数字.</small>-->
         </div>
-        <div class="form-group">
+        <div class="form-group" id="divPassword">
             <label for="inputPassword">密码</label>
             <input type="password" data-bv-field="inputPassword" name="inputPassword" class="form-control" id="inputPassword" placeholder="请输入登录密码">
+        </div>
+
+        <div class="form-group">
+            <label for="inputEmail">邮箱</label>
+            <input type="text" class="form-control" data-bv-field="inputEmail" name="inputEmail" id="inputEmail" placeholder="请输入邮箱">
+        </div>
+
+        <div class="form-group">
+            <div class="pretty p-switch p-fill">
+                    <input type="checkbox"  id="cbReceiveEmail"/>
+                    <div class="state"><label>接收邮件</label>
+                    </div>
+                </div>
         </div>
 
         <div class="form-group">
@@ -53,7 +66,9 @@
                 <th>登录名</th>
                 <th>创建时间</th>
                 <th>角色</th>
-                <th style="width:200px">操作</th>
+                <th>邮箱</th>
+                <th>接收邮件</th>
+                <th style="width:260px">操作</th>
 
             </tr>
         </thead>

@@ -56,6 +56,8 @@ var basepath = "/";//api根地址,这里需要和配置文件一致
             $('#userItem').css('display','none');
         if($('#assemblyItem')&&Number(getCookie("ROLE"))<2) 
             $('#assemblyItem').css('display','none');
+        if($('#mailItem')&&Number(getCookie("ROLE"))<2) 
+            $('#mailItem').css('display','none');
         if($('#user_name')) 
             $('#user_name').text(getCookie("UNAME"));
         // loadContent(window.location.hash);

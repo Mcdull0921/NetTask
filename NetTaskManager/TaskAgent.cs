@@ -7,23 +7,27 @@ namespace NetTaskManager
     {
         volatile TaskStatus taskStatus;
         readonly ITask task;
+        readonly TaskManager taskManager;
         readonly Guid id;
         readonly Guid assemblyId;
         TaskRunParam taskConfig;
         readonly object lockObject = new object();
-        internal TaskAgent(ITask task, Guid assemblyId, TaskRunParam taskConfig)
+        internal TaskAgent(ITask task, Guid assemblyId, TaskRunParam taskConfig, TaskManager taskManager)
         {
             this.task = task;
+            this.taskManager = taskManager;
             Logger logger = new Logger(task.GetType().FullName, assemblyId.ToString());
             task.logger.onInfo += logger.Info;
-            task.logger.onError += logger.Error;
+            task.logger.onError += (message, ex, sendEmail) => { logger.Error(message, ex); if (sendEmail) taskManager.TriggerTaskError(this, ex); };  // logger.Error;
+            task.logger.onMail += (receiver, message) => taskManager.TriggerTaskMail(this, message, receiver);
             taskStatus = TaskStatus.Stop;
             id = Guid.NewGuid();
             this.assemblyId = assemblyId;
             this.taskConfig = taskConfig;
         }
 
-        internal void Start(TaskManager taskManager)
+
+        internal void Start()
         {
             if (taskStatus != TaskStatus.Stop)
                 return;
@@ -43,7 +47,7 @@ namespace NetTaskManager
             }
         }
 
-        internal void RunImmediately(TaskManager taskManager)
+        internal void RunImmediately()
         {
             if (taskStatus != TaskStatus.Stop)
                 return;
@@ -76,7 +80,7 @@ namespace NetTaskManager
             {
                 taskStatus = TaskStatus.Stop;
                 NextProcessTime = null;
-                task.logger.Error(ex, string.Format("TaskAgent.Process异常，任务【{0}】", task.name));
+                task.logger.Error(ex, string.Format("TaskAgent.Process异常，任务【{0}】", task.name), true);
             }
         }
 

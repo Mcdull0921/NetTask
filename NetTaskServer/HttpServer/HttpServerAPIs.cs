@@ -20,19 +20,21 @@ namespace NetTaskServer.HttpServer
         private const string INTERFACE_DLL = "NetTaskInterface.dll";
 
         private TaskManager ServerContext;
-        private IDbOperator Dbop;
+        private IDbOperator UserDB;
+        private IDbOperator SysDB;
         private string baseLogFilePath;
 
-        public HttpServerAPIs(TaskManager serverContext, IDbOperator dbOperator, string logfilePath)
+        public HttpServerAPIs(TaskManager serverContext, IDbOperator userDB, IDbOperator sysDB, string logfilePath)
         {
             ServerContext = serverContext;
-            Dbop = dbOperator;
+            UserDB = userDB;
+            SysDB = sysDB;
             baseLogFilePath = logfilePath;
 
             //如果库中没有任何记录，则增加默认用户
-            if (Dbop.GetLength() < 1)
+            if (UserDB.GetLength() < 1)
             {
-                AddUserV2("admin", "admin", "2");
+                AddUserV2("admin", "admin", "2", "false", "");
             }
 
             serverContext.ReloadAssembly();
@@ -44,7 +46,7 @@ namespace NetTaskServer.HttpServer
         public string Login(string username, string userpwd, string ip)
         {
             //1.校验
-            dynamic user = Dbop.Get(username)?.ToDynamic();
+            dynamic user = UserDB.Get(username)?.ToDynamic();
             if (user == null)
             {
                 return "错误: 用户不存在。请点击<a href='javascript:history.go(-1)'>此处</a>返回。";
@@ -79,16 +81,16 @@ window.location.href='main.html';
         [Secure(2)]
         public List<string> GetUsers()
         {
-            List<string> userStrList = Dbop.Select(0, 999);
+            List<string> userStrList = UserDB.Select(0, 999);
             return userStrList;
         }
 
         [API]
         [Secure(2), LoginInfo]
-        public void AddUserV2(string userName, string userpwd, string role, LoginInfo info = null)
+        public void AddUserV2(string userName, string userpwd, string role, string receiveEmail, string email, LoginInfo info = null)
         {
 
-            if (Dbop.Exist(userName))
+            if (UserDB.Exist(userName))
             {
                 throw new Exception("error: user exist.");
             }
@@ -97,12 +99,30 @@ window.location.href='main.html';
                 userId = SUPER_VARIABLE_INDEX_ID,  //索引id
                 userName = userName,
                 userPwd = EncryptHelper.SHA256(userpwd),
+                receiveEmail = bool.Parse(receiveEmail),
+                email = email,
                 regTime = DateTime.Now,
                 role = int.Parse(role)
             };
-            Dbop.Insert(userName, user.ToJsonString());
+            UserDB.Insert(userName, user.ToJsonString());
             if (info != null)
                 ServerContext.logger.Info($"{info.username}添加了用户{userName}");
+        }
+
+        [API]
+        [Secure(2), LoginInfo]
+        public void EditUser(string userName, string role, string receiveEmail, string email, LoginInfo info)
+        {
+            if (!UserDB.Exist(userName))
+            {
+                throw new Exception("error: user not exist.");
+            }
+            var user = JsonConvert.DeserializeObject<User>(UserDB.Get(userName));
+            user.receiveEmail = bool.Parse(receiveEmail);
+            user.email = email;
+            user.role = int.Parse(role);
+            UserDB.Update(userName, user.ToJsonString());
+            ServerContext.logger.Info($"{info.username}修改了用户{userName}");
         }
 
         [ValidateAPI]
@@ -114,7 +134,7 @@ window.location.href='main.html';
                 return true;
             }
 
-            return !Dbop.Exist(newUserName);
+            return !UserDB.Exist(newUserName);
 
         }
 
@@ -129,8 +149,8 @@ window.location.href='main.html';
                 for (var i = arr.Length - 1; i > -1; i--)
                 {
                     var userId = int.Parse(arr[i]);
-                    Dbop.Delete(userId);//litedb不起作用
-                    Dbop.DeleteHash(userNameArr[i]);
+                    UserDB.Delete(userId);//litedb不起作用
+                    UserDB.DeleteHash(userNameArr[i]);
                     ServerContext.logger.Info($"{info.username}删除了用户{userNameArr[i]}");
                 }
             }
@@ -145,13 +165,13 @@ window.location.href='main.html';
         public void ResetPwd(string userName, string userPwd, LoginInfo info)
         {
 
-            if (!Dbop.Exist(userName))
+            if (!UserDB.Exist(userName))
             {
                 throw new Exception($"error: user {userName} not exist.");
             }
-            User user = Dbop.Get(userName)?.ToObject<User>();
+            User user = UserDB.Get(userName)?.ToObject<User>();
             user.userPwd = EncryptHelper.SHA256(userPwd);
-            Dbop.Update(userName, user.ToJsonString());
+            UserDB.Update(userName, user.ToJsonString());
             ServerContext.logger.Info($"{info.username}重置了用户{userName}的密码");
         }
         #endregion
@@ -436,6 +456,67 @@ window.location.href='main.html';
                 GC.Collect(1);
             }
             return result;
+        }
+        #endregion
+
+        #region 邮件
+        [API]
+        [Secure(2), LoginInfo]
+        public void EnableEmail(string server, string port, string username, string password, string content, LoginInfo info)
+        {
+            if (!int.TryParse(port, out int smtpPort))
+            {
+                throw new Exception("端口错误，不是有效数字");
+            }
+            var key = SystemKey.EMAIL.ToString();
+            MailAccount mailAccount = new MailAccount()
+            {
+                enable = true,
+                password = password,
+                userName = username,
+                smtpServer = server,
+                smtpPort = smtpPort,
+                content = content
+            };
+            if (SysDB.Exist(key))
+            {
+                SysDB.Update(key, mailAccount.ToJsonString());
+            }
+            else
+            {
+                SysDB.Insert(key, mailAccount.ToJsonString());
+            }
+            ServerContext.logger.Info($"{info.username}开启了邮件通知");
+        }
+
+        [API]
+        [Secure(2), LoginInfo]
+        public void DisableEmail(LoginInfo info)
+        {
+            var key = SystemKey.EMAIL.ToString();
+            MailAccount mailAccount = MailAccount.Default();
+            if (SysDB.Exist(key))
+            {
+                SysDB.Update(key, mailAccount.ToJsonString());
+            }
+            else
+            {
+                SysDB.Insert(key, mailAccount.ToJsonString());
+            }
+            ServerContext.logger.Info($"{info.username}关闭了邮件通知");
+        }
+
+        [API]
+        [Secure(2)]
+        public string GetEmailAccount()
+        {
+            var data = SysDB.Get(SystemKey.EMAIL.ToString());
+            if (data == null)
+            {
+                return MailAccount.Default().ToJsonString();
+            }
+            return data;
+
         }
         #endregion
 

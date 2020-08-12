@@ -20,6 +20,8 @@ namespace NetTaskManager
         private static TaskManager singleton = new TaskManager();
         private readonly object lockObject = new object();    //操作queue的地方都要锁住保证线程同步
         public readonly Logger logger;
+        public event Action<TaskAgent, Exception> OnTaskError;
+        public event Action<TaskAgent, string, string> OnTaskMail;
         public static TaskManager Create()
         {
             return singleton;
@@ -34,7 +36,6 @@ namespace NetTaskManager
 
         private TaskManager()
         {
-            //AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             queue = new Dictionary<Guid, TaskProcess>();
             if (!Directory.Exists(AssemblyPath))
             {
@@ -43,20 +44,15 @@ namespace NetTaskManager
             logger = new Logger(GetType().FullName, "main");
         }
 
-        //private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        //{
-        //    if (assemblies.ContainsKey(args.RequestingAssembly))
-        //    {
-        //        string dllPath = Path.Combine(AssemblyPath, assemblies[args.RequestingAssembly], args.Name.Remove(args.Name.IndexOf(',')) + ".dll");
-        //        if (!File.Exists(dllPath))
-        //            throw new FileNotFoundException("未能找到依赖项" + args.Name);
-        //        byte[] assemblyInfo = File.ReadAllBytes(dllPath);
-        //        var assembly = Assembly.Load(assemblyInfo);
-        //        assemblies.Add(assembly, assemblies[args.RequestingAssembly]);
-        //        return assembly;
-        //    }
-        //    return null;
-        //}
+        internal void TriggerTaskError(TaskAgent sender, Exception ex)
+        {
+            OnTaskError?.Invoke(sender, ex);
+        }
+
+        internal void TriggerTaskMail(TaskAgent sender, string message, string receiver)
+        {
+            OnTaskMail?.Invoke(sender, message, receiver);
+        }
 
         void CheckQueue()
         {
@@ -222,7 +218,7 @@ namespace NetTaskManager
                     config = configs[typeName];
                 else
                     config = TaskRunParam.CreateDefaultConfig(typeName);
-                TaskAgent ta = new TaskAgent(task, assemblyId, config);
+                TaskAgent ta = new TaskAgent(task, assemblyId, config, this);
                 ta.configuration = configuration.GetConfig(task.GetType());
                 AddTask(ta);
                 if (saveConfig)
@@ -318,7 +314,7 @@ namespace NetTaskManager
                 return;
             foreach (var t in tasks.Values.Where(p => p.Status == TaskStatus.Stop))
             {
-                t.Start(this);
+                t.Start();
             }
         }
 
@@ -339,7 +335,7 @@ namespace NetTaskManager
                 throw new TaskNotExistException();
             if (tasks[id].Status != TaskStatus.Stop)
                 throw new TaskNotStopException();
-            tasks[id].Start(this);
+            tasks[id].Start();
         }
 
         public void StopTask(Guid id)
@@ -358,7 +354,7 @@ namespace NetTaskManager
                 throw new TaskNotExistException();
             if (tasks[id].Status != TaskStatus.Stop)
                 throw new TaskNotStopException();
-            tasks[id].RunImmediately(this);
+            tasks[id].RunImmediately();
         }
 
         public void EditTaskConfig(Guid id, params KeyValuePair<string, string>[] configs)
